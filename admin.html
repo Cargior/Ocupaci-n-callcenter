@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Actualizar Reporte</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#0f0f10;--s:#18181b;--b:rgba(255,255,255,0.07);--t:#f0ede8;--m:#888480;--g:#22c98a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px}
+.card{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:40px;width:100%;max-width:560px}
+.tag{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--g);margin-bottom:12px}
+h1{font-size:24px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
+.sub{font-size:13px;color:var(--m);margin-bottom:32px;line-height:1.6}
+.drop{border:1.5px dashed rgba(255,255,255,.15);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px}
+.drop:hover,.drop.over{border-color:var(--g);background:rgba(34,201,138,.04)}
+.drop-icon{font-size:32px;margin-bottom:12px;opacity:.5}
+.drop-t{font-size:14px;font-weight:500;margin-bottom:4px}
+.drop-s{font-size:12px;color:var(--m)}
+#file-in{display:none}
+.btn{display:block;width:100%;padding:12px;background:var(--g);color:#000;border:none;border-radius:8px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:12px;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.prog-wrap{display:none;margin-bottom:20px}
+.prog-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.prog-fill{height:100%;background:var(--g);border-radius:2px;transition:width .3s;width:0}
+.prog-lbl{font-size:12px;color:var(--m)}
+.result{display:none;background:rgba(34,201,138,.08);border:1px solid rgba(34,201,138,.2);border-radius:10px;padding:20px;margin-bottom:20px}
+.result h3{font-size:14px;font-weight:600;color:var(--g);margin-bottom:12px}
+.result .stat{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.result .stat:last-child{border:none}
+.result .stat span{color:var(--m)}
+.result .stat strong{font-family:'DM Mono',monospace}
+.steps{margin-top:28px;font-size:12px;color:var(--m);border-top:1px solid var(--b);padding-top:20px}
+.steps h4{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#555;margin-bottom:12px}
+.step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.step-n{width:20px;height:20px;border-radius:50%;background:rgba(34,201,138,.15);color:var(--g);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.err{color:#f08080;font-size:13px;margin-top:12px;display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="tag">Panel de administración</div>
+  <h1>Actualizar reporte</h1>
+  <p class="sub">Subí el Excel, se procesa en tu navegador y descargás el archivo <code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-family:'DM Mono',monospace">data.json</code> listo para subir a GitHub.</p>
+
+  <div class="drop" id="drop" onclick="document.getElementById('file-in').click()">
+    <div class="drop-icon">📊</div>
+    <div class="drop-t" id="drop-t">Arrastrá BASE_OCUPACION.xlsx aquí</div>
+    <div class="drop-s">o hacé clic para seleccionar</div>
+    <input type="file" id="file-in" accept=".xlsx,.xls">
+  </div>
+
+  <div class="prog-wrap" id="prog-wrap">
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+    <div class="prog-lbl" id="prog-lbl">Procesando...</div>
+  </div>
+
+  <div class="result" id="result">
+    <h3>✓ Procesamiento completado</h3>
+    <div class="stat"><span>Período</span><strong id="r-per">—</strong></div>
+    <div class="stat"><span>Posiciones asignadas</span><strong id="r-pos">—</strong></div>
+    <div class="stat"><span>Ocupación promedio laboral</span><strong id="r-occ">—</strong></div>
+    <div class="stat"><span>Pico máximo</span><strong id="r-max">—</strong></div>
+    <div class="stat"><span>Clientes >100% occ.</span><strong id="r-over">—</strong></div>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <button class="btn" id="dl-btn" disabled onclick="downloadJSON()">Descargar data.json</button>
+
+  <div class="steps">
+    <h4>Próximo paso — subir a GitHub</h4>
+    <div class="step"><span class="step-n">1</span><span>Descargá el <code style="background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px;font-family:'DM Mono',monospace">data.json</code> con el botón de arriba</span></div>
+    <div class="step"><span class="step-n">2</span><span>Abrí tu repositorio en <strong>github.com</strong></span></div>
+    <div class="step"><span class="step-n">3</span><span>Hacé clic en <strong>data.json</strong> → ícono del lápiz (editar) → <strong>...</strong> → <em>Upload file</em></span></div>
+    <div class="step"><span class="step-n">4</span><span>Arrastrá el nuevo <code style="background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px;font-family:'DM Mono',monospace">data.json</code> → <strong>Commit changes</strong></span></div>
+    <div class="step"><span class="step-n">5</span><span>En ~30 segundos el sitio público se actualiza automáticamente ✓</span></div>
+  </div>
+</div>
+
+<script>
+let jsonData=null;
+
+const drop=document.getElementById('drop');
+const fileIn=document.getElementById('file-in');
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
+drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');handle(e.dataTransfer.files[0]);});
+fileIn.addEventListener('change',()=>handle(fileIn.files[0]));
+
+function setProgress(pct,lbl){document.getElementById('prog-fill').style.width=pct+'%';document.getElementById('prog-lbl').textContent=lbl;}
+
+function handle(file){
+  if(!file)return;
+  document.getElementById('drop-t').textContent=file.name;
+  document.getElementById('prog-wrap').style.display='block';
+  document.getElementById('result').style.display='none';
+  document.getElementById('err').style.display='none';
+  document.getElementById('dl-btn').disabled=true;
+  setTimeout(()=>process(file),50);
+}
+
+function parseDateTime(v){
+  if(!v)return null;
+  if(v instanceof Date)return v;
+  if(typeof v==='number'){const d=new Date(Math.round((v-25569)*86400*1000));return isNaN(d)?null:d;}
+  const d=new Date(v);return isNaN(d)?null:d;
+}
+function floorMin(d){const m=d.getMinutes()<30?0:30;return new Date(d.getFullYear(),d.getMonth(),d.getDate(),d.getHours(),m,0);}
+function ceilMin(d){const r=d.getMinutes()%30||d.getSeconds();return r?new Date(floorMin(d).getTime()+1800000):floorMin(d);}
+function toISO(d){return d.toISOString().slice(0,10);}
+
+function process(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      setProgress(10,'Leyendo hojas...');
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:false});
+      const wsL=wb.Sheets['LOGUEOS'];
+      if(!wsL)throw new Error('No se encontró la hoja LOGUEOS');
+      const wsA=wb.Sheets['ASIGNACION'];
+      if(!wsA)throw new Error('No se encontró la hoja ASIGNACION');
+
+      setProgress(20,'Cargando datos...');
+      const logueos=XLSX.utils.sheet_to_json(wsL);
+      const asig=XLSX.utils.sheet_to_json(wsA);
+
+      // Asignacion map
+      const asigMap={};let totalPos=0;
+      asig.forEach(r=>{if(r.Cliente&&r.Posiciones){asigMap[r.Cliente]={pos:+r.Posiciones,piso:r.PISO||'?'};totalPos+=+r.Posiciones;}});
+
+      setProgress(30,'Filtrando presenciales...');
+      const pres=[];
+      logueos.forEach(row=>{
+        if(!row['Locación']||row['Locación'].toString().toUpperCase()!=='PRESENCIAL')return;
+        const ing=parseDateTime(row['Ingreso']),egr=parseDateTime(row['Egreso']);
+        if(!ing||!egr||egr<=ing)return;
+        const fecha=toISO(ing);
+        if(fecha>='2026-10-01')return;
+        pres.push({ing,egr,fecha,cliente:row['Cliente'],campaña:row['Campaña'],legajo:String(row['Legajo'])});
+      });
+
+      setProgress(45,'Expandiendo franjas de 30 min...');
+      const STEP=30*60*1000;
+      const slots=new Map();
+      pres.forEach(row=>{
+        const start=floorMin(row.ing).getTime(),end=ceilMin(row.egr).getTime();
+        for(let t=start;t<end;t+=STEP){
+          const k=row.fecha+'|'+row.cliente+'|'+row.campaña+'|'+t;
+          if(!slots.has(k))slots.set(k,new Set());
+          slots.get(k).add(row.legajo);
+        }
+      });
+
+      setProgress(60,'Calculando picos...');
+      const byFC=new Map();
+      for(const [k,set] of slots){
+        const [fecha,cliente,,t]=k.split('|');
+        const fk=fecha+'|'+cliente;
+        if(!byFC.has(fk))byFC.set(fk,new Map());
+        byFC.get(fk).set(t,(byFC.get(fk).get(t)||0)+set.size);
+      }
+      const dailyPeak=new Map();
+      for(const [fk,franjas] of byFC){dailyPeak.set(fk,Math.max(...franjas.values()));}
+
+      setProgress(72,'Agregando por fecha...');
+      const dailyTot=new Map();
+      for(const [fk,peak] of dailyPeak){const fecha=fk.split('|')[0];dailyTot.set(fecha,(dailyTot.get(fecha)||0)+peak);}
+
+      const daily=[];
+      for(const [fecha,pico] of dailyTot){
+        const occ=+(pico/totalPos*100).toFixed(1);
+        if(occ>500)continue;
+        const dow=new Date(fecha+'T12:00:00').getDay();
+        daily.push({Fecha:fecha,pico_total:pico,occ_pct:occ,dow});
+      }
+      daily.sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
+
+      setProgress(82,'Calculando por cliente...');
+      const cliMap=new Map();
+      for(const [fk,peak] of dailyPeak){
+        const [fecha,cliente]=fk.split('|');
+        const dow=new Date(fecha+'T12:00:00').getDay();
+        if(dow===0||dow===6)continue;
+        const info=asigMap[cliente];if(!info||!info.pos)continue;
+        const occ=+(peak/info.pos*100).toFixed(1);
+        if(!cliMap.has(cliente))cliMap.set(cliente,{sum:0,cnt:0,maxP:0,dias:new Set()});
+        const c=cliMap.get(cliente);c.sum+=occ;c.cnt++;c.dias.add(fecha);if(peak>c.maxP)c.maxP=peak;
+      }
+      const byClient=[];
+      for(const [cli,v] of cliMap){
+        const info=asigMap[cli]||{};
+        byClient.push({Cliente:cli,PISO:info.piso||'—',Posiciones:info.pos||0,pico_max:v.maxP,occ_avg:+(v.sum/v.cnt).toFixed(1),dias:v.dias.size});
+      }
+      byClient.sort((a,b)=>b.Posiciones-a.Posiciones);
+
+      setProgress(92,'Generando KPIs...');
+      const lab=daily.filter(d=>d.dow>0&&d.dow<6),finde=daily.filter(d=>d.dow===0||d.dow===6);
+      const labAvg=lab.length?+(lab.reduce((s,d)=>s+d.occ_pct,0)/lab.length).toFixed(1):0;
+      const labMax=lab.length?Math.max(...lab.map(d=>d.occ_pct)):0;
+      const labMaxF=lab.find(d=>d.occ_pct===labMax)?.Fecha||'—';
+      const findeAvg=finde.length?+(finde.reduce((s,d)=>s+d.occ_pct,0)/finde.length).toFixed(1):0;
+      const over100=byClient.filter(c=>c.occ_avg>100).length;
+      const now=new Date();
+      const updated=now.getDate().toString().padStart(2,'0')+'/'+(now.getMonth()+1).toString().padStart(2,'0')+'/'+now.getFullYear();
+
+      jsonData={
+        kpis:{total_pos:totalPos,total_agentes:new Set(pres.map(r=>r.legajo)).size,occ_avg_lab:labAvg,occ_max:labMax,occ_max_fecha:labMaxF,occ_finde:findeAvg,clientes_over100:over100,periodo:daily.length?daily[0].Fecha+' — '+daily[daily.length-1].Fecha:'—',updated},
+        daily,byClient
+      };
+
+      setProgress(100,'Listo ✓');
+      document.getElementById('r-per').textContent=jsonData.kpis.periodo;
+      document.getElementById('r-pos').textContent=totalPos.toLocaleString();
+      document.getElementById('r-occ').textContent=labAvg+'%';
+      document.getElementById('r-max').textContent=labMax+'% ('+labMaxF+')';
+      document.getElementById('r-over').textContent=over100;
+      document.getElementById('result').style.display='block';
+      document.getElementById('dl-btn').disabled=false;
+
+    }catch(err){
+      document.getElementById('prog-wrap').style.display='none';
+      const el=document.getElementById('err');el.style.display='block';el.textContent='❌ '+err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function downloadJSON(){
+  const blob=new Blob([JSON.stringify(jsonData,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data.json';a.click();
+}
+</script>
+</body>
+</html>
