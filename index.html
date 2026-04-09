@@ -208,8 +208,8 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
       </div>
       <div class="ftabs" id="ftabs"></div>
       <div class="map-legend">
-        <span class="mleg"><span class="mleg-dot" style="background:#4a9eff"></span>Posicion ocupada (presencial en pico)</span>
-        <span class="mleg"><span class="mleg-dot" style="background:#1a1a1d;border:1px solid rgba(255,255,255,0.12)"></span>Posicion libre</span>
+        <span class="mleg"><span class="mleg-dot" style="background:#22c98a"></span>Posicion ocupada (presencial en pico)</span>
+        <span class="mleg"><span class="mleg-dot" style="background:#1e2a22;border:1px solid rgba(34,201,138,0.15)"></span>Posicion libre</span>
       </div>
       <div class="finfo" id="finfo"></div>
       <div class="mwrap" id="mwrap"></div>
@@ -432,30 +432,27 @@ function renderMapSection(C){
 function drawMap(fi, C){
   const f=FLOORS[fi];
 
-  // Total posiciones asignadas al piso (suma de todos los clientes del piso)
-  const pisoKey = f.name === '1' ? '1 ' : f.name === '3' ? '3 ' : f.name === '4' ? '4 ' : f.name;
+  // Get piso stats (used/total from assigned positions)
+  // Match by trimming spaces since asigMap may have trailing spaces in piso names
+  const pisoEntry = Object.entries(C.pisoStats).find(([k])=>k.trim()===f.name.trim());
+  const st = pisoEntry ? pisoEntry[1] : {used:0, total:f.cells.length};
 
-  // Count total cells in this floor map = total positions shown
+  const assignedPos  = st.total;   // posiciones asignadas segun ASIGNACION
+  const usedAssigned = st.used;    // usadas en dia pico (capped at assigned)
+  const freeAssigned = assignedPos - usedAssigned;
+  const occPct       = assignedPos>0 ? (usedAssigned/assignedPos*100).toFixed(1) : 0;
+
+  // Scale to actual cell count in the map
+  // All cells must be painted: first N cells = occupied (green), rest = free (grey)
   const totalCells = f.cells.length;
+  const usedCells  = Math.round(assignedPos>0 ? (usedAssigned/assignedPos)*totalCells : 0);
 
-  // Usadas en dia pico para este piso — from pisoStats which already caps at assigned
-  const st = C.pisoStats[pisoKey] || C.pisoStats[f.name] ||
-    // fallback: find by partial match
-    Object.entries(C.pisoStats).find(([k])=>k.trim()===f.name.trim())?.[1] ||
-    {used:0, total:totalCells};
-
-  const usedCount = st.used;
-  const totalCount = st.total;
-  const freeCount  = totalCount - usedCount;
-  const occPct     = totalCount>0 ? (usedCount/totalCount*100).toFixed(1) : 0;
-
-  // Build grid — fill used cells from top-left, rest are free
-  // (simple approach: first N cells = used, rest = free)
-  const usedSet = new Set();
-  for(let i=0;i<Math.min(usedCount, f.cells.length);i++) usedSet.add(i);
+  // Mark first usedCells cells as occupied (sorted by row then col = top-left first)
+  const sortedCells = [...f.cells].sort((a,b)=>a.r-b.r||a.c-b.c);
+  const occupiedSet = new Set(sortedCells.slice(0, usedCells).map(x=>x.r+'_'+x.c));
 
   const lk = new Map();
-  f.cells.forEach((x,i)=>{ lk.set(x.r+'_'+x.c, i); });
+  f.cells.forEach(x=>{ lk.set(x.r+'_'+x.c, true); });
 
   const maxR=Math.max(...f.cells.map(x=>x.r));
   const maxC=Math.max(...f.cells.map(x=>x.c));
@@ -463,24 +460,27 @@ function drawMap(fi, C){
 
   let rects='';
   for(let r=0;r<=maxR;r++) for(let c=0;c<=maxC;c++){
-    const idx=lk.get(r+'_'+c);
+    const key=r+'_'+c;
     const x=G+c*(CS+G), y=G+r*(CS+G);
-    if(idx!==undefined){
-      if(usedSet.has(idx)){
-        rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1.5" fill="#4a9eff" fill-opacity="0.85"/>`;
+    if(lk.has(key)){
+      if(occupiedSet.has(key)){
+        // Occupied — green
+        rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1.5" fill="#22c98a" fill-opacity="0.85"/>`;
       } else {
-        rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1.5" fill="#1a1a1d" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>`;
+        // Free — dark grey with subtle green tint
+        rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1.5" fill="#1e2a22" stroke="rgba(34,201,138,0.15)" stroke-width="0.5"/>`;
       }
     } else {
+      // Not a position (gap/corridor)
       rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1" fill="#0a0a0b"/>`;
     }
   }
 
   document.getElementById('finfo').innerHTML=
     `<strong>Piso ${f.name}</strong>
-     <span style="color:#888">${totalCount} posiciones asignadas</span>
-     <span style="color:#22c98a;font-weight:500">${usedCount} usadas</span>
-     <span style="color:#4a9eff;font-weight:500">${freeCount} libres</span>
+     <span style="color:#888">${assignedPos} posiciones asignadas</span>
+     <span style="color:#22c98a;font-weight:500">${usedAssigned} usadas</span>
+     <span style="color:#4a9eff;font-weight:500">${freeAssigned} libres</span>
      <span style="color:${oc(+occPct)};font-weight:500">${occPct}% ocupacion</span>`;
 
   document.getElementById('mwrap').innerHTML=
