@@ -97,7 +97,6 @@ function onDateChange(){
 }
 
 function render(){
-  // Filtrado estricto por fecha local
   const data = RAW.daily.filter(d => d.Fecha >= dateFrom && d.Fecha <= dateTo);
   const asigMap = RAW.meta.asigMap;
   
@@ -105,7 +104,7 @@ function render(){
   const maxDayRaw = data.find(d=>d.occ_pct === maxOcc)?.Fecha || '-';
   
   if(maxDayRaw !== '-') {
-      // SOLUCIÓN DEFINITIVA FECHA: Split para evitar desfase UTC
+      // CORRECCIÓN DE FECHA: Separación manual de componentes para evitar desfase de zona horaria
       const p = maxDayRaw.split('-');
       const dLocal = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
       document.getElementById('k-mf').textContent = dLocal.toLocaleDateString('es-AR', {day:'2-digit', month:'long'});
