@@ -3,57 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin - Actualizar Reporte Histórico</title>
+<title>Admin - Ocupación Histórica</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{--bg:#0f0f10;--s:#18181b;--b:rgba(255,255,255,0.07);--t:#f0ede8;--m:#888480;--g:#22c98a}
+:root{--bg:#fafbfc;--s:#ffffff;--b:#e1e4e8;--t:#1a1f23;--m:#6a737d;--g:#28a745}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px}
-.card{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:40px;width:100%;max-width:560px}
-.tag{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--g);margin-bottom:12px}
-h1{font-size:24px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
+.card{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:40px;width:100%;max-width:560px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+h1{font-size:24px;font-weight:600;margin-bottom:8px;color:var(--t)}
 .sub{font-size:13px;color:var(--m);margin-bottom:32px;line-height:1.6}
-.drop{border:1.5px dashed rgba(255,255,255,.15);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px}
-.drop:hover,.drop.over{border-color:var(--g);background:rgba(34,201,138,.04)}
-.btn{display:block;width:100%;padding:12px;background:var(--g);color:#000;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:12px}
+.drop{border:1.5px dashed var(--b);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px}
+.drop:hover{border-color:var(--g);background:rgba(40,167,69,0.04)}
+.btn{display:block;width:100%;padding:12px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-.pw{display:none;margin-bottom:20px}.pb{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.pw{display:none;margin-bottom:20px}.pb{height:4px;background:#eee;border-radius:2px;overflow:hidden;margin-bottom:8px}
 .pf{height:100%;background:var(--g);width:0;transition:width .3s}.pl{font-size:12px;color:var(--m)}
-.err{color:#f08080;font-size:13px;margin-top:12px;display:none}
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="tag">Panel de administración</div>
   <h1>Actualizar Reporte</h1>
-  <p class="sub">Subí el Excel procesado con la nueva macro. Se leerá la solapa <code>Max Ocupación x Franja</code> para generar la serie histórica.</p>
+  <p class="sub">Subí el Excel procesado. Se leerá la solapa <code>Max Ocupación x Franja</code> para generar la serie histórica con decimales.</p>
   <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
-    <div class="di">📊</div>
-    <div class="dt" id="dtt">Arrastra el Excel aquí</div>
+    <div id="dtt">Arrastra el Excel aquí o haz clic</div>
     <input type="file" id="fi" style="display:none" accept=".xlsx">
   </div>
   <div class="pw" id="pw"><div class="pb"><div class="pf" id="pf"></div></div><div class="pl" id="pll">Procesando...</div></div>
-  <div class="err" id="err"></div>
   <button class="btn" id="dl" disabled onclick="download()">Descargar data.json</button>
 </div>
 
 <script>
 let jd=null;
 const drop=document.getElementById('drop'), fi=document.getElementById('fi');
-
-drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
-drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
-drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');handle(e.dataTransfer.files[0]);});
+drop.addEventListener('dragover',e=>{e.preventDefault();});
+drop.addEventListener('drop',e=>{e.preventDefault();handle(e.dataTransfer.files[0]);});
 fi.addEventListener('change',()=>handle(fi.files[0]));
-
-function prog(p,l){document.getElementById('pf').style.width=p+'%';document.getElementById('pll').textContent=l;}
 
 function handle(f){
     if(!f)return;
     document.getElementById('dtt').textContent=f.name;
     document.getElementById('pw').style.display='block';
-    document.getElementById('err').style.display='none';
     document.getElementById('dl').disabled=true;
     setTimeout(()=>process(f),50);
 }
@@ -62,14 +52,9 @@ function process(file){
   const reader=new FileReader();
   reader.onload=e=>{
     try{
-      prog(20,'Leyendo libro de Excel...');
       const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
       const wsMax = wb.Sheets['Max Ocupación x Franja'];
       const wsAsig = wb.Sheets['ASIGNACION'];
-      
-      if(!wsMax) throw new Error('No se encontró la hoja "Max Ocupación x Franja".');
-
-      prog(50,'Procesando datos históricos...');
       const rows = XLSX.utils.sheet_to_json(wsMax);
       const asigRows = XLSX.utils.sheet_to_json(wsAsig || {});
       
@@ -81,9 +66,7 @@ function process(file){
           }
       });
 
-      const dpc = {}; 
-      const dailyMap = {};
-
+      const dpc = {}; const dailyMap = {};
       rows.forEach(row => {
         let fRaw = row['Fecha'];
         let fecha = (fRaw instanceof Date) ? fRaw.toISOString().slice(0,10) : String(fRaw);
@@ -104,27 +87,14 @@ function process(file){
         dow: v.dow
       })).sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
 
-      jd = {
-          meta: { 
-              total_pos: totalPos, 
-              updated: new Date().toLocaleDateString('es-AR'), 
-              periodo: daily.length ? `${daily[0].Fecha} / ${daily[daily.length-1].Fecha}` : '-',
-              asigMap 
-          },
-          daily,
-          daily_per_client: dpc
-      };
-
-      prog(100,'Listo');
+      jd = { meta: { total_pos: totalPos, updated: new Date().toLocaleDateString('es-AR'), asigMap }, daily, daily_per_client: dpc };
+      document.getElementById('pf').style.width='100%';
+      document.getElementById('pll').textContent='Listo';
       document.getElementById('dl').disabled=false;
-    } catch(err) {
-      document.getElementById('err').style.display='block';
-      document.getElementById('err').textContent='Error: '+err.message;
-    }
+    } catch(err) { alert('Error: '+err.message); }
   };
   reader.readAsArrayBuffer(file);
 }
-
 function download(){
     const blob=new Blob([JSON.stringify(jd,null,2)],{type:'application/json'});
     const a=document.createElement('a');
