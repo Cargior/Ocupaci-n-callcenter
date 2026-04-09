@@ -96,20 +96,33 @@ function onDateChange(){
   render();
 }
 
+function resetDashboard() {
+    document.getElementById('k-max').textContent = '0%';
+    document.getElementById('k-mf').textContent = '-';
+    document.getElementById('piso-rows').innerHTML = '<div style="color:var(--m); padding:20px; text-align:center">No hay datos para este periodo</div>';
+    document.getElementById('tbl-cli').innerHTML = '<tbody><tr><td style="text-align:center; padding:40px; color:var(--m)">No hay datos registrados en estas fechas</td></tr></tbody>';
+    if(charts.daily) charts.daily.destroy();
+    if(charts.piso) charts.piso.destroy();
+}
+
 function render(){
   const data = RAW.daily.filter(d => d.Fecha >= dateFrom && d.Fecha <= dateTo);
   const asigMap = RAW.meta.asigMap;
-  
-  const maxOcc = data.length ? Math.max(...data.map(d=>d.occ_pct)) : 0;
+
+  // 1. LIMPIEZA SI NO HAY DATOS
+  if (data.length === 0) {
+      resetDashboard();
+      document.getElementById('k-pos').textContent = RAW.meta.total_pos;
+      return;
+  }
+
+  const maxOcc = Math.max(...data.map(d=>d.occ_pct));
   const maxDayRaw = data.find(d=>d.occ_pct === maxOcc)?.Fecha || '-';
   
   if(maxDayRaw !== '-') {
-      // CORRECCIÓN DE FECHA: Separación manual de componentes para evitar desfase de zona horaria
       const p = maxDayRaw.split('-');
       const dLocal = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
       document.getElementById('k-mf').textContent = dLocal.toLocaleDateString('es-AR', {day:'2-digit', month:'long'});
-  } else {
-      document.getElementById('k-mf').textContent = '-';
   }
 
   document.getElementById('k-pos').textContent = RAW.meta.total_pos;
