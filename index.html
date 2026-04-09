@@ -22,7 +22,7 @@ body { background: var(--bg); color: var(--t); font-family: 'Inter', sans-serif;
 .nav-item.active { color: var(--bl); border-left-color: var(--bl); background: rgba(3,102,214,0.06); }
 .main { padding: 40px; max-width: 1200px; width: 100%; margin: 0 auto; }
 .period-bar { background: var(--s); border: 1px solid var(--b); border-radius: 12px; padding: 16px 24px; margin-bottom: 28px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow); }
-.date-input { border: 1px solid var(--b); border-radius: 6px; padding: 8px 12px; font-family: 'Roboto Mono'; font-size: 13px; }
+.date-input { border: 1px solid var(--b); border-radius: 6px; padding: 8px 12px; font-family: 'Roboto Mono'; font-size: 13px; outline: none; }
 .section { display: none; }
 .section.active { display: block; }
 .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 28px; }
@@ -78,14 +78,16 @@ let RAW=null, dateFrom='', dateTo='', charts={};
 const oc = v => v<=80?'#28a745':v<=100?'#f66a0a':'#d73a49';
 
 async function init(){
-  const res = await fetch('data.json');
-  RAW = await res.json();
-  const dates = RAW.daily.map(d=>d.Fecha).sort();
-  dateFrom=dates[0]; dateTo=dates[dates.length-1];
-  document.getElementById('date-from').value=dateFrom;
-  document.getElementById('date-to').value=dateTo;
-  document.getElementById('shell').style.display='grid';
-  render();
+  try {
+    const res = await fetch('data.json');
+    RAW = await res.json();
+    const dates = RAW.daily.map(d=>d.Fecha).sort();
+    dateFrom=dates[0]; dateTo=dates[dates.length-1];
+    document.getElementById('date-from').value=dateFrom;
+    document.getElementById('date-to').value=dateTo;
+    document.getElementById('shell').style.display='grid';
+    render();
+  } catch(e) { console.error("Error cargando JSON", e); }
 }
 
 function onDateChange(){
@@ -95,20 +97,27 @@ function onDateChange(){
 }
 
 function render(){
+  // Filtrado estricto por fecha local
   const data = RAW.daily.filter(d => d.Fecha >= dateFrom && d.Fecha <= dateTo);
   const asigMap = RAW.meta.asigMap;
+  
   const maxOcc = data.length ? Math.max(...data.map(d=>d.occ_pct)) : 0;
   const maxDayRaw = data.find(d=>d.occ_pct === maxOcc)?.Fecha || '-';
   
   if(maxDayRaw !== '-') {
+      // SOLUCIÓN DEFINITIVA FECHA: Split para evitar desfase UTC
       const p = maxDayRaw.split('-');
-      document.getElementById('k-mf').textContent = new Date(p[0],p[1]-1,p[2]).toLocaleDateString('es-AR',{day:'2-digit',month:'long'});
+      const dLocal = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+      document.getElementById('k-mf').textContent = dLocal.toLocaleDateString('es-AR', {day:'2-digit', month:'long'});
+  } else {
+      document.getElementById('k-mf').textContent = '-';
   }
 
   document.getElementById('k-pos').textContent = RAW.meta.total_pos;
   document.getElementById('k-max').textContent = maxOcc + '%';
   document.getElementById('period-info').textContent = 'Actualizado: ' + RAW.meta.updated;
 
+  // Lógica de rebalse Personal 3 y 4
   const peakCli = (maxDayRaw !== '-' && RAW.daily_per_client[maxDayRaw]) ? RAW.daily_per_client[maxDayRaw] : {};
   const capP3 = asigMap["PERSONAL 3"]?.pos || 213;
   const capP4 = asigMap["PERSONAL 4"]?.pos || 152;
@@ -134,7 +143,7 @@ function render(){
   const prows = document.getElementById('piso-rows'); prows.innerHTML = '';
   Object.entries(pisoStats).sort().forEach(([p, s]) => {
     const pct = (s.used/s.total*100).toFixed(1);
-    prows.innerHTML += `<div class="prow"><span>Piso ${p}</span><div class="btrack"><div class="bfill" style="width:${Math.min(pct,100)}%;background:${oc(pct)}"></div></div><span class="pstat">${s.used.toFixed(1)} / ${s.total}</span></div>`;
+    prows.innerHTML += `<div class="prow"><span>Piso ${p}</span><div class="btrack"><div class="bfill" style="width:${Math.min(pct,100)}%;background:${oc(pct)}"></div></div><span style="font-family:'Roboto Mono'; font-size:12px; text-align:right">${s.used.toFixed(1)} / ${s.total}</span></div>`;
   });
 
   renderCharts(data, pisoStats);
@@ -148,7 +157,7 @@ function renderTable(peakCli, asigMap, f3, f4){
     let u = parseFloat(peakCli[cli] || 0);
     if(cli === "PERSONAL 3") u = f3; if(cli === "PERSONAL 4") u = f4;
     const pct = (u / info.pos * 100).toFixed(1);
-    h += `<tr><td>${cli}</td><td>${info.piso}</td><td>${info.pos}</td><td style="color:var(--bl); font-weight:600">${u.toFixed(1)}</td><td><span class="pill ${pct>100?'pr':(pct>90?'pa':'pg')}">${pct}%</span></td></tr>`;
+    h += `<tr><td style="font-weight:600">${cli}</td><td>${info.piso}</td><td>${info.pos}</td><td style="color:var(--bl); font-weight:600">${u.toFixed(1)}</td><td><span class="pill ${pct>100?'pr':(pct>90?'pa':'pg')}">${pct}%</span></td></tr>`;
   });
   tbl.innerHTML = h + `</tbody>`;
 }
@@ -156,13 +165,13 @@ function renderTable(peakCli, asigMap, f3, f4){
 function renderCharts(data, pisoStats){
   if(charts.daily) charts.daily.destroy();
   charts.daily = new Chart(document.getElementById('ch-daily'), {
-    type:'line', data: { labels: data.map(d=>d.Fecha), datasets: [{ data: data.map(d=>d.pico_total), borderColor: '#0366d6', fill: true, tension: 0.3 }] },
-    options: { responsive: true, maintainAspectRatio: false }
+    type:'line', data: { labels: data.map(d=>d.Fecha), datasets: [{ label: 'Agentes (FTE)', data: data.map(d=>d.pico_total), borderColor: '#0366d6', backgroundColor: 'rgba(3,102,214,0.06)', fill: true, tension: 0.3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
   });
   if(charts.piso) charts.piso.destroy();
   charts.piso = new Chart(document.getElementById('ch-piso'), {
-    type:'bar', data: { labels: Object.keys(pisoStats), datasets: [{ label: 'Usadas', data: Object.values(pisoStats).map(s=>s.used.toFixed(1)), backgroundColor: '#28a745' }] },
-    options: { responsive: true, maintainAspectRatio: false }
+    type:'bar', data: { labels: Object.keys(pisoStats).map(p=>'Piso '+p), datasets: [{ label: 'Usadas', data: Object.values(pisoStats).map(s=>s.used.toFixed(1)), backgroundColor: '#28a745' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
   });
 }
 
