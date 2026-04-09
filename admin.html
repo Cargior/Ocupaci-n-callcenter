@@ -11,7 +11,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px}
 .card{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:40px;width:100%;max-width:560px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
-h1{font-size:24px;font-weight:600;margin-bottom:8px;color:var(--t)}
+h1{font-size:24px;font-weight:600;margin-bottom:8px}
 .sub{font-size:13px;color:var(--m);margin-bottom:32px;line-height:1.6}
 .drop{border:1.5px dashed var(--b);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px}
 .drop:hover{border-color:var(--g);background:rgba(40,167,69,0.04)}
@@ -24,7 +24,7 @@ h1{font-size:24px;font-weight:600;margin-bottom:8px;color:var(--t)}
 <body>
 <div class="card">
   <h1>Actualizar Reporte</h1>
-  <p class="sub">Subí el Excel procesado. Se leerá la solapa <code>Max Ocupación x Franja</code> para generar la serie histórica con decimales.</p>
+  <p class="sub">Subí el Excel procesado. Se leerá la solapa <code>Max Ocupación x Franja</code> para generar la serie histórica completa.</p>
   <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
     <div id="dtt">Arrastra el Excel aquí o haz clic</div>
     <input type="file" id="fi" style="display:none" accept=".xlsx">
@@ -66,15 +66,19 @@ function process(file){
           }
       });
 
-      const dpc = {}; const dailyMap = {};
+      const dpc = {}; const dailyMap = {}; const hourlyDist = {};
       rows.forEach(row => {
         let fRaw = row['Fecha'];
         let fecha = (fRaw instanceof Date) ? fRaw.toISOString().slice(0,10) : String(fRaw);
         let cli = row['Cliente'];
         let fte = parseFloat(row['Max FTE (Pres)']) || 0;
+        let franja = row['Franja'];
 
         if(!dpc[fecha]) dpc[fecha] = {};
         dpc[fecha][cli] = (dpc[fecha][cli] || 0) + fte;
+
+        if(!hourlyDist[fecha]) hourlyDist[fecha] = {};
+        hourlyDist[fecha][franja] = (hourlyDist[fecha][franja] || 0) + fte;
 
         if(!dailyMap[fecha]) dailyMap[fecha] = { pico: 0, dow: new Date(fecha+'T12:00:00').getDay() };
         dailyMap[fecha].pico += fte;
@@ -87,7 +91,7 @@ function process(file){
         dow: v.dow
       })).sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
 
-      jd = { meta: { total_pos: totalPos, updated: new Date().toLocaleDateString('es-AR'), asigMap }, daily, daily_per_client: dpc };
+      jd = { meta: { total_pos: totalPos, updated: new Date().toLocaleDateString('es-AR'), asigMap }, daily, daily_per_client: dpc, hourly_distribution: hourlyDist };
       document.getElementById('pf').style.width='100%';
       document.getElementById('pll').textContent='Listo';
       document.getElementById('dl').disabled=false;
@@ -97,10 +101,7 @@ function process(file){
 }
 function download(){
     const blob=new Blob([JSON.stringify(jd,null,2)],{type:'application/json'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='data.json';
-    a.click();
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='data.json'; a.click();
 }
 </script>
 </body>
