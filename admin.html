@@ -2,106 +2,77 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin - Ocupación Histórica</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
+<title>Admin - Ocupación</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{--bg:#fafbfc;--s:#ffffff;--b:#e1e4e8;--t:#1a1f23;--m:#6a737d;--g:#28a745}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px}
-.card{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:40px;width:100%;max-width:560px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
-h1{font-size:24px;font-weight:600;margin-bottom:8px}
-.sub{font-size:13px;color:var(--m);margin-bottom:32px;line-height:1.6}
-.drop{border:1.5px dashed var(--b);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px}
-.drop:hover{border-color:var(--g);background:rgba(40,167,69,0.04)}
-.btn{display:block;width:100%;padding:12px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.pw{display:none;margin-bottom:20px}.pb{height:4px;background:#eee;border-radius:2px;overflow:hidden;margin-bottom:8px}
-.pf{height:100%;background:var(--g);width:0;transition:width .3s}.pl{font-size:12px;color:var(--m)}
+  body{font-family:sans-serif;background:#f7f8f9;display:flex;justify-content:center;padding:50px}
+  .card{background:#fff;padding:40px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);max-width:500px;width:100%;text-align:center}
+  .drop{border:2px dashed #ccc;padding:30px;margin:20px 0;cursor:pointer;border-radius:8px}
+  .btn{background:#28a745;color:#fff;border:none;padding:12px 20px;border-radius:6px;cursor:pointer;width:100%}
+  .btn:disabled{background:#ccc}
 </style>
 </head>
 <body>
 <div class="card">
-  <h1>Actualizar Reporte</h1>
-  <p class="sub">Subí el Excel procesado. Se leerá la solapa <code>Max Ocupación x Franja</code> para generar la serie histórica completa.</p>
-  <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
-    <div id="dtt">Arrastra el Excel aquí o haz clic</div>
-    <input type="file" id="fi" style="display:none" accept=".xlsx">
-  </div>
-  <div class="pw" id="pw"><div class="pb"><div class="pf" id="pf"></div></div><div class="pl" id="pll">Procesando...</div></div>
+  <h2>Actualizar Base Histórica</h2>
+  <p>Subí tu Excel para generar el nuevo <b>data.json</b> con franjas horarias.</p>
+  <div class="drop" onclick="document.getElementById('fi').click()" id="drop">Arrastra o haz clic aquí</div>
+  <input type="file" id="fi" style="display:none" accept=".xlsx">
   <button class="btn" id="dl" disabled onclick="download()">Descargar data.json</button>
 </div>
 
 <script>
 let jd=null;
-const drop=document.getElementById('drop'), fi=document.getElementById('fi');
-drop.addEventListener('dragover',e=>{e.preventDefault();});
-drop.addEventListener('drop',e=>{e.preventDefault();handle(e.dataTransfer.files[0]);});
-fi.addEventListener('change',()=>handle(fi.files[0]));
+document.getElementById('fi').onchange = e => handle(e.target.files[0]);
 
 function handle(f){
-    if(!f)return;
-    document.getElementById('dtt').textContent=f.name;
-    document.getElementById('pw').style.display='block';
-    document.getElementById('dl').disabled=true;
-    setTimeout(()=>process(f),50);
+    const reader = new FileReader();
+    reader.onload = e => {
+        const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+        const ws = wb.Sheets['Max Ocupación x Franja'];
+        const wsA = wb.Sheets['ASIGNACION'];
+        const rows = XLSX.utils.sheet_to_json(ws);
+        const asigRows = XLSX.utils.sheet_to_json(wsA || {});
+
+        const asigMap = {}; let totalPos = 0;
+        asigRows.forEach(r => {
+            if(r.Cliente && r.Posiciones){
+                asigMap[r.Cliente] = {pos: +r.Posiciones, piso: String(r.PISO||'?')};
+                totalPos += +r.Posiciones;
+            }
+        });
+
+        const dpc = {}, dailyMap = {}, hourly = {};
+        rows.forEach(r => {
+            let fRaw = r['Fecha'];
+            let fecha = (fRaw instanceof Date) ? fRaw.toISOString().slice(0,10) : String(fRaw);
+            let cli = r['Cliente'], fte = parseFloat(r['Max FTE (Pres)']) || 0, fr = r['Franja'];
+
+            if(!dpc[fecha]) dpc[fecha] = {};
+            dpc[fecha][cli] = (dpc[fecha][cli] || 0) + fte;
+
+            if(!hourly[fecha]) hourly[fecha] = {};
+            hourly[fecha][fr] = (hourly[fecha][fr] || 0) + fte;
+
+            if(!dailyMap[fecha]) dailyMap[fecha] = { pico: 0, dow: new Date(fecha+'T12:00:00').getDay() };
+            dailyMap[fecha].pico += fte;
+        });
+
+        const daily = Object.entries(dailyMap).map(([f, v]) => ({
+            Fecha: f, pico_total: +v.pico.toFixed(2), 
+            occ_pct: +(v.pico / totalPos * 100).toFixed(1), dow: v.dow
+        })).sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
+
+        jd = { meta: { total_pos: totalPos, updated: new Date().toLocaleDateString('es-AR'), asigMap }, daily, daily_per_client: dpc, hourly_distribution: hourly };
+        document.getElementById('dl').disabled = false;
+        document.getElementById('drop').textContent = "¡Archivo procesado!";
+    };
+    reader.readAsArrayBuffer(f);
 }
 
-function process(file){
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
-      const wsMax = wb.Sheets['Max Ocupación x Franja'];
-      const wsAsig = wb.Sheets['ASIGNACION'];
-      const rows = XLSX.utils.sheet_to_json(wsMax);
-      const asigRows = XLSX.utils.sheet_to_json(wsAsig || {});
-      
-      const asigMap = {}; let totalPos = 0;
-      asigRows.forEach(r=>{
-          if(r.Cliente && r.Posiciones){
-              asigMap[r.Cliente] = {pos: +r.Posiciones, piso: String(r.PISO||'?')};
-              totalPos += +r.Posiciones;
-          }
-      });
-
-      const dpc = {}; const dailyMap = {}; const hourlyDist = {};
-      rows.forEach(row => {
-        let fRaw = row['Fecha'];
-        let fecha = (fRaw instanceof Date) ? fRaw.toISOString().slice(0,10) : String(fRaw);
-        let cli = row['Cliente'];
-        let fte = parseFloat(row['Max FTE (Pres)']) || 0;
-        let franja = row['Franja'];
-
-        if(!dpc[fecha]) dpc[fecha] = {};
-        dpc[fecha][cli] = (dpc[fecha][cli] || 0) + fte;
-
-        if(!hourlyDist[fecha]) hourlyDist[fecha] = {};
-        hourlyDist[fecha][franja] = (hourlyDist[fecha][franja] || 0) + fte;
-
-        if(!dailyMap[fecha]) dailyMap[fecha] = { pico: 0, dow: new Date(fecha+'T12:00:00').getDay() };
-        dailyMap[fecha].pico += fte;
-      });
-
-      const daily = Object.entries(dailyMap).map(([f, v]) => ({
-        Fecha: f,
-        pico_total: parseFloat(v.pico.toFixed(2)),
-        occ_pct: parseFloat((v.pico / totalPos * 100).toFixed(1)),
-        dow: v.dow
-      })).sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
-
-      jd = { meta: { total_pos: totalPos, updated: new Date().toLocaleDateString('es-AR'), asigMap }, daily, daily_per_client: dpc, hourly_distribution: hourlyDist };
-      document.getElementById('pf').style.width='100%';
-      document.getElementById('pll').textContent='Listo';
-      document.getElementById('dl').disabled=false;
-    } catch(err) { alert('Error: '+err.message); }
-  };
-  reader.readAsArrayBuffer(file);
-}
 function download(){
-    const blob=new Blob([JSON.stringify(jd,null,2)],{type:'application/json'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='data.json'; a.click();
+    const blob = new Blob([JSON.stringify(jd)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'data.json'; a.click();
 }
 </script>
 </body>
