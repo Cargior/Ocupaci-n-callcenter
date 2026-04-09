@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Actualizar Reporte</title>
+<title>Admin - Actualizar Reporte Histórico</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -14,161 +14,124 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;min-he
 .tag{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--g);margin-bottom:12px}
 h1{font-size:24px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
 .sub{font-size:13px;color:var(--m);margin-bottom:32px;line-height:1.6}
-code{background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-family:'DM Mono',monospace}
 .drop{border:1.5px dashed rgba(255,255,255,.15);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px}
 .drop:hover,.drop.over{border-color:var(--g);background:rgba(34,201,138,.04)}
-.di{font-size:32px;margin-bottom:12px;opacity:.5}
-.dt{font-size:14px;font-weight:500;margin-bottom:4px}
-.ds{font-size:12px;color:var(--m)}
-#fi{display:none}
-.btn{display:block;width:100%;padding:12px;background:var(--g);color:#000;border:none;border-radius:8px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:12px;transition:opacity .15s}
-.btn:hover{opacity:.85}.btn:disabled{opacity:.4;cursor:not-allowed}
-.pw{display:none;margin-bottom:20px}
-.pb{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:8px}
-.pf{height:100%;background:var(--g);border-radius:2px;transition:width .3s;width:0}
-.pl{font-size:12px;color:var(--m)}
-.res{display:none;background:rgba(34,201,138,.08);border:1px solid rgba(34,201,138,.2);border-radius:10px;padding:20px;margin-bottom:20px}
-.res h3{font-size:14px;font-weight:600;color:var(--g);margin-bottom:12px}
-.stat{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-.stat:last-child{border:none}
-.stat span{color:var(--m)}.stat strong{font-family:'DM Mono',monospace}
-.steps{margin-top:28px;font-size:12px;color:var(--m);border-top:1px solid var(--b);padding-top:20px}
-.steps h4{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#555;margin-bottom:12px}
-.step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
-.sn{width:20px;height:20px;border-radius:50%;background:rgba(34,201,138,.15);color:var(--g);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.btn{display:block;width:100%;padding:12px;background:var(--g);color:#000;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.pw{display:none;margin-bottom:20px}.pb{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.pf{height:100%;background:var(--g);width:0;transition:width .3s}.pl{font-size:12px;color:var(--m)}
 .err{color:#f08080;font-size:13px;margin-top:12px;display:none}
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="tag">Panel de administracion</div>
-  <h1>Actualizar reporte</h1>
-  <p class="sub">Subi el Excel, se procesa en el navegador y descargais el <code>data.json</code> listo para subir a GitHub.</p>
+  <div class="tag">Panel de administración</div>
+  <h1>Actualizar Reporte</h1>
+  <p class="sub">Subí el Excel procesado con la nueva macro. Se leerá la solapa <code>Max Ocupación x Franja</code> para generar la serie histórica.</p>
   <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
     <div class="di">📊</div>
-    <div class="dt" id="dtt">Arrastra BASE_OCUPACION.xlsx aqui</div>
-    <div class="ds">o hace clic para seleccionar</div>
-    <input type="file" id="fi" accept=".xlsx,.xls">
+    <div class="dt" id="dtt">Arrastra el Excel aquí</div>
+    <input type="file" id="fi" style="display:none" accept=".xlsx">
   </div>
   <div class="pw" id="pw"><div class="pb"><div class="pf" id="pf"></div></div><div class="pl" id="pll">Procesando...</div></div>
-  <div class="res" id="res">
-    <h3>Procesamiento completado</h3>
-    <div class="stat"><span>Periodo</span><strong id="r-per">-</strong></div>
-    <div class="stat"><span>Posiciones asignadas</span><strong id="r-pos">-</strong></div>
-    <div class="stat"><span>Dias con datos</span><strong id="r-dias">-</strong></div>
-    <div class="stat"><span>Ocupacion promedio laboral</span><strong id="r-occ">-</strong></div>
-    <div class="stat"><span>Dia pico</span><strong id="r-peak">-</strong></div>
-    <div class="stat"><span>Posiciones libres en dia pico</span><strong id="r-free">-</strong></div>
-  </div>
   <div class="err" id="err"></div>
   <button class="btn" id="dl" disabled onclick="download()">Descargar data.json</button>
-  <div class="steps">
-    <h4>Proximo paso</h4>
-    <div class="step"><span class="sn">1</span><span>Descarga el <code>data.json</code> con el boton de arriba</span></div>
-    <div class="step"><span class="sn">2</span><span>Abri tu repositorio en <strong>github.com</strong></span></div>
-    <div class="step"><span class="sn">3</span><span>Clic en <strong>data.json</strong>, luego en el lapiz (editar) → tres puntos → Upload file</span></div>
-    <div class="step"><span class="sn">4</span><span>Arrastra el nuevo <code>data.json</code> → Commit changes</span></div>
-    <div class="step"><span class="sn">5</span><span>En 30 segundos el sitio publico se actualiza automaticamente</span></div>
-  </div>
 </div>
+
 <script>
 let jd=null;
-const drop=document.getElementById('drop'),fi=document.getElementById('fi');
+const drop=document.getElementById('drop'), fi=document.getElementById('fi');
+
 drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
 drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
 drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');handle(e.dataTransfer.files[0]);});
 fi.addEventListener('change',()=>handle(fi.files[0]));
+
 function prog(p,l){document.getElementById('pf').style.width=p+'%';document.getElementById('pll').textContent=l;}
-function handle(f){if(!f)return;document.getElementById('dtt').textContent=f.name;document.getElementById('pw').style.display='block';document.getElementById('res').style.display='none';document.getElementById('err').style.display='none';document.getElementById('dl').disabled=true;setTimeout(()=>process(f),50);}
-function pdt(v){if(!v)return null;if(v instanceof Date)return v;if(typeof v==='number'){const d=new Date(Math.round((v-25569)*86400*1000));return isNaN(d)?null:d;}const d=new Date(v);return isNaN(d)?null:d;}
-function flr(d){const m=d.getMinutes()<30?0:30;return new Date(d.getFullYear(),d.getMonth(),d.getDate(),d.getHours(),m,0);}
-function cel(d){const r=d.getMinutes()%30||d.getSeconds();return r?new Date(flr(d).getTime()+1800000):flr(d);}
-function iso(d){return d.toISOString().slice(0,10);}
-function dow(f){return new Date(f+'T12:00:00').getDay();}
+
+function handle(f){
+    if(!f)return;
+    document.getElementById('dtt').textContent=f.name;
+    document.getElementById('pw').style.display='block';
+    document.getElementById('err').style.display='none';
+    document.getElementById('dl').disabled=true;
+    setTimeout(()=>process(f),50);
+}
+
 function process(file){
   const reader=new FileReader();
   reader.onload=e=>{
     try{
-      prog(10,'Leyendo hojas...');
-      const wb=XLSX.read(e.target.result,{type:'array',cellDates:false});
-      const wsL=wb.Sheets['LOGUEOS'];if(!wsL)throw new Error('No se encontro la hoja LOGUEOS');
-      const wsA=wb.Sheets['ASIGNACION'];if(!wsA)throw new Error('No se encontro la hoja ASIGNACION');
-      prog(20,'Cargando datos...');
-      const logueos=XLSX.utils.sheet_to_json(wsL);
-      const asigRows=XLSX.utils.sheet_to_json(wsA);
-      const asigMap={};let totalPos=0;
-      asigRows.forEach(r=>{if(r.Cliente&&r.Posiciones){asigMap[r.Cliente]={pos:+r.Posiciones,piso:String(r.PISO||'?')};totalPos+=+r.Posiciones;}});
-      prog(30,'Filtrando presenciales...');
-      const pres=[];
-      logueos.forEach(row=>{
-        if(!row['Locacion']&&!row['Locación'])return;
-        const loc=(row['Locacion']||row['Locación']||'').toString().toUpperCase();
-        if(loc!=='PRESENCIAL')return;
-        const ing=pdt(row['Ingreso']),egr=pdt(row['Egreso']);
-        if(!ing||!egr||egr<=ing)return;
-        const fecha=iso(ing);if(fecha>='2026-10-01')return;
-        pres.push({ing,egr,fecha,cliente:row['Cliente'],campana:row['Campana']||row['Campaña'],legajo:String(row['Legajo'])});
+      prog(20,'Leyendo libro de Excel...');
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      const wsMax = wb.Sheets['Max Ocupación x Franja'];
+      const wsAsig = wb.Sheets['ASIGNACION'];
+      
+      if(!wsMax) throw new Error('No se encontró la hoja "Max Ocupación x Franja".');
+
+      prog(50,'Procesando datos históricos...');
+      const rows = XLSX.utils.sheet_to_json(wsMax);
+      const asigRows = XLSX.utils.sheet_to_json(wsAsig || {});
+      
+      const asigMap = {}; let totalPos = 0;
+      asigRows.forEach(r=>{
+          if(r.Cliente && r.Posiciones){
+              asigMap[r.Cliente] = {pos: +r.Posiciones, piso: String(r.PISO||'?')};
+              totalPos += +r.Posiciones;
+          }
       });
-      prog(45,'Expandiendo franjas...');
-      const STEP=30*60*1000,slots={};
-      pres.forEach(row=>{
-        const start=flr(row.ing).getTime(),end=cel(row.egr).getTime();
-        for(let t=start;t<end;t+=STEP){
-          const k=`${row.fecha}|${row.cliente}|${row.campana}|${t}`;
-          if(!slots[k])slots[k]=new Set();slots[k].add(row.legajo);
-        }
+
+      const dpc = {}; 
+      const dailyMap = {};
+
+      rows.forEach(row => {
+        let fRaw = row['Fecha'];
+        let fecha = (fRaw instanceof Date) ? fRaw.toISOString().slice(0,10) : String(fRaw);
+        let cli = row['Cliente'];
+        let fte = parseFloat(row['Max FTE (Pres)']) || 0;
+
+        if(!dpc[fecha]) dpc[fecha] = {};
+        dpc[fecha][cli] = (dpc[fecha][cli] || 0) + fte;
+
+        if(!dailyMap[fecha]) dailyMap[fecha] = { pico: 0, dow: new Date(fecha+'T12:00:00').getDay() };
+        dailyMap[fecha].pico += fte;
       });
-      prog(60,'Calculando picos...');
-      const byFC={};
-      for(const [k,s] of Object.entries(slots)){const p=k.split('|');const fk=`${p[0]}|${p[1]}`;if(!byFC[fk])byFC[fk]={};byFC[fk][p[3]]=(byFC[fk][p[3]]||0)+s.size;}
-      const dpc={};
-      for(const [fk,fr] of Object.entries(byFC)){const[fecha,cliente]=fk.split('|');if(!dpc[fecha])dpc[fecha]={};dpc[fecha][cliente]=Math.max(...Object.values(fr));}
-      prog(72,'Totales...');
-      const daily=[];
-      for(const [fecha,clients] of Object.entries(dpc)){
-        const pico=Object.values(clients).reduce((s,v)=>s+v,0);
-        const occ=+(pico/totalPos*100).toFixed(1);if(occ>500)continue;
-        daily.push({Fecha:fecha,pico_total:pico,occ_pct:occ,dow:dow(fecha)});
-      }
-      daily.sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
-      prog(82,'Por cliente...');
-      const cliMap={};
-      for(const [fecha,clients] of Object.entries(dpc)){
-        const d=dow(fecha);if(d===0||d===6)continue;
-        for(const [cli,peak] of Object.entries(clients)){
-          const info=asigMap[cli];if(!info)continue;
-          const occ=+(peak/info.pos*100).toFixed(1);
-          if(!cliMap[cli])cliMap[cli]={sum:0,cnt:0,maxP:0,dias:new Set()};
-          cliMap[cli].sum+=occ;cliMap[cli].cnt++;cliMap[cli].dias.add(fecha);if(peak>cliMap[cli].maxP)cliMap[cli].maxP=peak;
-        }
-      }
-      const byClient=[];
-      for(const [cli,v] of Object.entries(cliMap)){const info=asigMap[cli]||{};byClient.push({Cliente:cli,PISO:info.piso||'-',Posiciones:info.pos||0,pico_max:v.maxP,occ_avg:+(v.sum/v.cnt).toFixed(1),dias:v.dias.size});}
-      byClient.sort((a,b)=>b.Posiciones-a.Posiciones);
-      prog(92,'KPIs...');
-      const lab=daily.filter(d=>d.dow>0&&d.dow<6);
-      const labAvg=lab.length?+(lab.reduce((s,d)=>s+d.occ_pct,0)/lab.length).toFixed(1):0;
-      const labMax=lab.length?Math.max(...lab.map(d=>d.occ_pct)):0;
-      const labMaxF=lab.find(d=>d.occ_pct===labMax)?.Fecha||'-';
-      const peakCli=(labMaxF!=='-'&&dpc[labMaxF])?dpc[labMaxF]:{};
-      const totalUsed=Object.entries(asigMap).reduce((s,[cl,info])=>s+Math.min(peakCli[cl]||0,info.pos),0);
-      const now=new Date();
-      const updated=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`;
-      jd={meta:{total_pos:totalPos,updated,periodo:daily.length?`${daily[0].Fecha} - ${daily[daily.length-1].Fecha}`:'-',asigMap},daily,daily_per_client:dpc,byClient};
+
+      const daily = Object.entries(dailyMap).map(([f, v]) => ({
+        Fecha: f,
+        pico_total: parseFloat(v.pico.toFixed(2)),
+        occ_pct: parseFloat((v.pico / totalPos * 100).toFixed(1)),
+        dow: v.dow
+      })).sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
+
+      jd = {
+          meta: { 
+              total_pos: totalPos, 
+              updated: new Date().toLocaleDateString('es-AR'), 
+              periodo: daily.length ? `${daily[0].Fecha} / ${daily[daily.length-1].Fecha}` : '-',
+              asigMap 
+          },
+          daily,
+          daily_per_client: dpc
+      };
+
       prog(100,'Listo');
-      document.getElementById('r-per').textContent=jd.meta.periodo;
-      document.getElementById('r-pos').textContent=totalPos.toLocaleString();
-      document.getElementById('r-dias').textContent=daily.length;
-      document.getElementById('r-occ').textContent=labAvg+'%';
-      document.getElementById('r-peak').textContent=labMaxF+' ('+labMax+'%)';
-      document.getElementById('r-free').textContent=(totalPos-totalUsed)+' / '+totalPos;
-      document.getElementById('res').style.display='block';
       document.getElementById('dl').disabled=false;
-    }catch(err){document.getElementById('pw').style.display='none';const el=document.getElementById('err');el.style.display='block';el.textContent='Error: '+err.message;}
+    } catch(err) {
+      document.getElementById('err').style.display='block';
+      document.getElementById('err').textContent='Error: '+err.message;
+    }
   };
   reader.readAsArrayBuffer(file);
 }
-function download(){const blob=new Blob([JSON.stringify(jd,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data.json';a.click();}
+
+function download(){
+    const blob=new Blob([JSON.stringify(jd,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='data.json';
+    a.click();
+}
 </script>
 </body>
 </html>
