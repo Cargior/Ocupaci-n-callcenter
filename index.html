@@ -3,454 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reporte de Ocupación Histórica | Modo Claro</title>
+<title>Ocupación Histórica</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-/* NUEVA PALETA DE COLORES - LIGHT MODE VÍVIDO */
 :root {
-  --bg: #fafbfc; /* Fondo general muy claro */
-  --s: #ffffff;  /* Fondo de tarjetas y sidebar (blanco puro) */
-  --s2: #f4f6f8; /* Variación para inputs y fondos secundarios */
-  --b: #e1e4e8;  /* Bordes suaves */
-  
-  /* Texto */
-  --t: #1a1f23;  /* Texto principal (casi negro) */
-  --m: #6a737d;  /* Texto secundario (gris) */
-  
-  /* Colores de acento vívidos */
-  --g: #28a745;  /* Verde éxito vívido */
-  --a: #f66a0a;  /* Naranja alerta vívido */
-  --r: #d73a49;  /* Rojo peligro vívido */
-  --bl: #0366d6; /* Azul vívido (similar a GitHub) */
-  
-  /* Estilos */
-  --rad: 12px;
-  --shadow: 0 4px 12px rgba(27,31,35,0.05); /* Sombra suave para elevación */
+  --bg: #fafbfc; --s: #ffffff; --b: #e1e4e8; --t: #1a1f23; --m: #6a737d;
+  --g: #28a745; --a: #f66a0a; --r: #d73a49; --bl: #0366d6;
+  --shadow: 0 4px 12px rgba(27,31,35,0.05);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
-body { 
-  background: var(--bg); 
-  color: var(--t); 
-  font-family: 'Inter', sans-serif; /* Tipografía Inter más nítida */
-  font-size: 14px; 
-  min-height: 100vh; 
-}
-
-.shell { 
-  display: grid; 
-  grid-template-columns: 240px 1fr; 
-  min-height: 100vh; 
-}
-
-/* SIDEBAR CLARO Y PROFESIONAL */
-.sidebar { 
-  background: var(--s); 
-  border-right: 1px solid var(--b); 
-  padding: 32px 0; 
-  position: sticky; 
-  top: 0; 
-  height: 100vh; 
-  overflow-y: auto; 
-  display: flex; 
-  flex-direction: column; 
-  box-shadow: 2px 0 10px rgba(0,0,0,0.02);
-}
-
-.brand { 
-  padding: 0 24px 28px; 
-  border-bottom: 1px solid var(--b); 
-  margin-bottom: 24px; 
-}
-
-.brand-title { 
-  font-size: 14px; 
-  font-weight: 700; 
-  letter-spacing: .02em; 
-  color: var(--t); /* Título en negro */
-}
-
-.nav-item { 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
-  padding: 12px 24px; 
-  font-size: 14px; 
-  font-weight: 500;
-  color: var(--m); 
-  cursor: pointer; 
-  border-left: 3px solid transparent; 
-  transition: all 0.2s; 
-}
-
-.nav-item:hover { 
-  color: var(--t); 
-  background: rgba(3,102,214,0.03); 
-}
-
-.nav-item.active { 
-  color: var(--bl); /* Acento azul en activo */
-  border-left-color: var(--bl); 
-  background: rgba(3,102,214,0.06); 
-}
-
-.main { 
-  padding: 40px; 
-  max-width: 1200px; 
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* BARRA DE PERIODO CLARA */
-.period-bar { 
-  background: var(--s); 
-  border: 1px solid var(--b); 
-  border-radius: var(--rad); 
-  padding: 16px 24px; 
-  margin-bottom: 28px; 
-  display: flex; 
-  align-items: center; 
-  gap: 16px; 
-  flex-wrap: wrap; 
-  box-shadow: var(--shadow);
-}
-
-.date-input { 
-  background: var(--s); 
-  border: 1px solid var(--b); 
-  border-radius: 6px; 
-  color: var(--t); 
-  font-family: 'Roboto Mono', monospace; /* MonoRoboto para números */
-  font-size: 13px; 
-  padding: 8px 12px; 
-  outline: none; 
-  transition: border-color 0.2s;
-}
-
-.date-input:focus {
-  border-color: var(--bl);
-}
-
+body { background: var(--bg); color: var(--t); font-family: 'Inter', sans-serif; font-size: 14px; }
+.shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.sidebar { background: var(--s); border-right: 1px solid var(--b); padding: 32px 0; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; }
+.brand { padding: 0 24px 28px; border-bottom: 1px solid var(--b); margin-bottom: 24px; }
+.brand-title { font-size: 14px; font-weight: 700; color: var(--t); }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: var(--m); cursor: pointer; border-left: 3px solid transparent; transition: 0.2s; font-weight: 500; }
+.nav-item.active { color: var(--bl); border-left-color: var(--bl); background: rgba(3,102,214,0.06); }
+.main { padding: 40px; max-width: 1200px; width: 100%; margin: 0 auto; }
+.period-bar { background: var(--s); border: 1px solid var(--b); border-radius: 12px; padding: 16px 24px; margin-bottom: 28px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow); }
+.date-input { border: 1px solid var(--b); border-radius: 6px; padding: 8px 12px; font-family: 'Roboto Mono'; font-size: 13px; }
 .section { display: none; }
 .section.active { display: block; }
-
-/* KPI GRID ELEVADO */
-.kpi-grid { 
-  display: grid; 
-  grid-template-columns: repeat(4, 1fr); 
-  gap: 20px; 
-  margin-bottom: 28px; 
-}
-
-.kpi { 
-  background: var(--s); 
-  border: 1px solid var(--b); 
-  border-radius: var(--rad); 
-  padding: 24px; 
-  box-shadow: var(--shadow);
-  transition: transform 0.2s;
-}
-
-.kpi:hover {
-  transform: translateY(-2px);
-}
-
-.kt { font-size: 11px; font-weight: 600; color: var(--m); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-.kv { font-size: 32px; font-weight: 700; color: var(--t); font-family: 'Roboto Mono', monospace; }
-
-/* TARJETA DE PISOS CLARA */
-.free-card { 
-  background: var(--s); 
-  border: 1px solid var(--b); 
-  border-radius: var(--rad); 
-  padding: 24px; 
-  margin-bottom: 28px; 
-  box-shadow: var(--shadow);
-}
-
-.prow { 
-  display: grid; 
-  grid-template-columns: 80px 1fr 160px; 
-  align-items: center; 
-  gap: 16px; 
-  margin-bottom: 14px; 
-}
-
-.pname { font-weight: 600; color: var(--t); }
-.btrack { height: 10px; background: #e1e4e8; border-radius: 6px; overflow: hidden; }
-.bfill { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
-.pstat { font-family: 'Roboto Mono', monospace; font-size: 12px; text-align: right; color: var(--m); }
-
-/* CONTENEDOR DE GRÁFICOS CLARO */
-.cc { 
-  background: var(--s); 
-  border: 1px solid var(--b); 
-  border-radius: var(--rad); 
-  padding: 28px; 
-  margin-bottom: 24px; 
-  box-shadow: var(--shadow);
-}
-
-.ctitle { font-size: 12px; font-weight: 600; color: var(--m); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; }
-
-/* TABLA CLARA Y NÍTIDA */
-.dt { width: 100%; border-collapse: collapse; font-size: 14px; }
-.dt th { text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--b); color: var(--m); font-size: 11px; text-transform: uppercase; font-weight: 600; }
-.dt td { padding: 14px 16px; border-bottom: 1px solid #eaecef; color: var(--t); }
-.dt tbody tr:hover { background-color: rgba(3,102,214,0.01); }
-
-.pill { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: 'Roboto Mono', monospace; }
-.pg { background: rgba(40,167,69,0.1); color: var(--g); border: 1px solid rgba(40,167,69,0.2); }
-.pa { background: rgba(246,106,10,0.1); color: var(--a); border: 1px solid rgba(246,106,10,0.2); }
-.pr { background: rgba(215,58,73,0.1); color: var(--r); border: 1px solid rgba(215,58,73,0.2); }
-
-.loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 16px; background: var(--bg); color: var(--bl); font-weight: 500; font-size: 16px;}
-@media(max-width:1024px){ .shell{grid-template-columns:200px 1fr} .kpi-grid{grid-template-columns:repeat(2,1fr)} }
-@media(max-width:768px){ .shell{grid-template-columns:1fr} .sidebar{display:none} .main{padding:24px} .period-bar{padding:12px; gap:10px} }
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 28px; }
+.kpi { background: var(--s); border: 1px solid var(--b); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); }
+.kt { font-size: 11px; font-weight: 600; color: var(--m); text-transform: uppercase; margin-bottom: 8px; }
+.kv { font-size: 32px; font-weight: 700; font-family: 'Roboto Mono'; }
+.free-card { background: var(--s); border: 1px solid var(--b); border-radius: 12px; padding: 24px; margin-bottom: 28px; box-shadow: var(--shadow); }
+.prow { display: grid; grid-template-columns: 80px 1fr 160px; align-items: center; gap: 16px; margin-bottom: 12px; }
+.btrack { height: 10px; background: #eee; border-radius: 6px; overflow: hidden; }
+.bfill { height: 100%; transition: width 0.6s ease; }
+.cc { background: var(--s); border: 1px solid var(--b); border-radius: 12px; padding: 28px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.dt { width: 100%; border-collapse: collapse; }
+.dt th { text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--b); color: var(--m); font-size: 11px; text-transform: uppercase; }
+.dt td { padding: 14px 16px; border-bottom: 1px solid #eee; }
+.pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: 'Roboto Mono'; }
+.pg { background: rgba(40,167,69,0.1); color: var(--g); }
+.pa { background: rgba(246,106,10,0.1); color: var(--a); }
+.pr { background: rgba(215,58,73,0.1); color: var(--r); }
 </style>
 </head>
 <body>
-
 <div class="shell" id="shell" style="display:none">
   <nav class="sidebar">
-    <div class="brand"><div class="brand-title">Workforce Histórico</div></div>
+    <div class="brand"><div class="brand-title">Ocupación Histórica</div></div>
     <div class="nav-item active" onclick="nav('kpis',this)">📊 Resumen ejecutivo</div>
     <div class="nav-item" onclick="nav('daily',this)">📅 Ocupación diaria</div>
     <div class="nav-item" onclick="nav('clients',this)">🏢 Por cliente</div>
   </nav>
-
   <main class="main">
     <div class="period-bar">
-      <label style="font-weight:500; color:var(--m); font-size:12px">DESDE</label>
       <input type="date" class="date-input" id="date-from" onchange="onDateChange()">
-      <label style="font-weight:500; color:var(--m); font-size:12px">HASTA</label>
       <input type="date" class="date-input" id="date-to" onchange="onDateChange()">
-      <span id="period-info" style="font-size:12px; color:var(--bl); font-weight:500; margin-left:auto"></span>
+      <span id="period-info" style="margin-left:auto; color:var(--bl); font-weight:600"></span>
     </div>
-
     <div class="section active" id="sec-kpis">
       <div class="kpi-grid">
         <div class="kpi"><div class="kt">POSICIONES ASIGNADAS</div><div class="kv" id="k-pos">-</div></div>
-        <div class="kpi"><div class="kt">OCC. PROMEDIO</div><div class="kv" id="k-occ" style="color:var(--bl)">-</div></div>
         <div class="kpi"><div class="kt">PICO MÁXIMO</div><div class="kv" id="k-max">-</div></div>
         <div class="kpi"><div class="kt">DÍA PICO</div><div class="kv" id="k-mf" style="font-size:18px; color:var(--a)">-</div></div>
       </div>
-
       <div class="free-card">
-        <div style="margin-bottom:20px;font-weight:700; font-size:15px">Ocupación por piso <span style="color:var(--m); font-weight:400; font-size:12px">(Día pico del periodo seleccionado)</span></div>
+        <div style="margin-bottom:20px; font-weight:700">Ocupación por piso (Lógica de Rebalse)</div>
         <div id="piso-rows"></div>
       </div>
-
-      <div class="cc">
-        <div class="ctitle">Visualización Usadas vs Libres por piso</div>
-        <div style="height:280px"><canvas id="ch-piso"></canvas></div>
-      </div>
+      <div class="cc"><div style="height:280px"><canvas id="ch-piso"></canvas></div></div>
     </div>
-
-    <div class="section" id="sec-daily">
-      <div class="cc">
-        <div class="ctitle">Evolución Temporal de Ocupación (FTE Decimal)</div>
-        <div style="height:380px"><canvas id="ch-daily"></canvas></div>
-      </div>
-    </div>
-
-    <div class="section" id="sec-clients">
-      <div class="cc" style="padding: 0 0 16px 0">
-        <div class="ctitle" style="padding: 28px 28px 0 28px">Detalle por Cliente y Piso <span style="color:var(--m); font-weight:400; font-size:12px">(Basado en día pico)</span></div>
-        <table class="dt" id="tbl-cli"></table>
-      </div>
-    </div>
+    <div class="section" id="sec-daily"><div class="cc"><div style="height:380px"><canvas id="ch-daily"></canvas></div></div></div>
+    <div class="section" id="sec-clients"><div class="cc" style="padding:0"><table class="dt" id="tbl-cli"></table></div></div>
   </main>
 </div>
-
-<div id="loading" class="loading">
-  <div style="font-size:30px">⏳</div>
-  Cargando base de datos histórica...
-</div>
-
 <script>
 let RAW=null, dateFrom='', dateTo='', charts={};
-
-// Configuración de colores vívidos globales para Chart.js
-Chart.defaults.color = '#6a737d'; // Texto secundaria
-Chart.defaults.font.family = "'Inter', sans-serif";
-Chart.defaults.borderColor = '#e1e4e8'; // Bordes suaves
-
-const oc = v => v<=80?'#28a745':v<=100?'#f66a0a':'#d73a49'; // Verde, Naranja, Rojo vívidos
+const oc = v => v<=80?'#28a745':v<=100?'#f66a0a':'#d73a49';
 
 async function init(){
-  try{
-    const res = await fetch('data.json');
-    RAW = await res.json();
-    const dates = RAW.daily.map(d=>d.Fecha).sort();
-    dateFrom = dates[0]; 
-    dateTo = dates[dates.length-1];
-    document.getElementById('date-from').value = dateFrom;
-    document.getElementById('date-to').value = dateTo;
-    document.getElementById('loading').style.display='none';
-    document.getElementById('shell').style.display='grid';
-    render();
-  }catch(e){ document.getElementById('loading').textContent='Error al cargar data.json. Asegurate de que el archivo existe.'; }
+  const res = await fetch('data.json');
+  RAW = await res.json();
+  const dates = RAW.daily.map(d=>d.Fecha).sort();
+  dateFrom=dates[0]; dateTo=dates[dates.length-1];
+  document.getElementById('date-from').value=dateFrom;
+  document.getElementById('date-to').value=dateTo;
+  document.getElementById('shell').style.display='grid';
+  render();
 }
 
 function onDateChange(){
-  dateFrom = document.getElementById('date-from').value;
-  dateTo = document.getElementById('date-to').value;
+  dateFrom=document.getElementById('date-from').value;
+  dateTo=document.getElementById('date-to').value;
   render();
 }
 
 function render(){
   const data = RAW.daily.filter(d => d.Fecha >= dateFrom && d.Fecha <= dateTo);
   const asigMap = RAW.meta.asigMap;
-  const totalPos = RAW.meta.total_pos;
-
-  const lab = data.filter(d => d.dow > 0 && d.dow < 6);
-  const labAvg = lab.length ? (lab.reduce((s,d)=>s+d.occ_pct,0)/lab.length).toFixed(1) : 0;
-  const maxOcc = lab.length ? Math.max(...lab.map(d=>d.occ_pct)) : 0;
-  const maxDayRaw = lab.find(d=>d.occ_pct === maxOcc)?.Fecha || '-';
+  const maxOcc = data.length ? Math.max(...data.map(d=>d.occ_pct)) : 0;
+  const maxDayRaw = data.find(d=>d.occ_pct === maxOcc)?.Fecha || '-';
   
-  // Formatear fecha para el KPI
-  let maxDayDisp = maxDayRaw;
   if(maxDayRaw !== '-') {
-      const df = new Date(maxDayRaw + 'T12:00:00');
-      maxDayDisp = df.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
+      const p = maxDayRaw.split('-');
+      document.getElementById('k-mf').textContent = new Date(p[0],p[1]-1,p[2]).toLocaleDateString('es-AR',{day:'2-digit',month:'long'});
   }
 
-  document.getElementById('k-pos').textContent = totalPos;
-  document.getElementById('k-occ').textContent = labAvg + '%';
+  document.getElementById('k-pos').textContent = RAW.meta.total_pos;
   document.getElementById('k-max').textContent = maxOcc + '%';
-  document.getElementById('k-mf').textContent = maxDayDisp;
-  document.getElementById('period-info').textContent = `Actualizado: ${RAW.meta.updated}`;
+  document.getElementById('period-info').textContent = 'Actualizado: ' + RAW.meta.updated;
 
-  // Calculo de pisos basado en día pico con DECIMALES
   const peakCli = (maxDayRaw !== '-' && RAW.daily_per_client[maxDayRaw]) ? RAW.daily_per_client[maxDayRaw] : {};
+  const capP3 = asigMap["PERSONAL 3"]?.pos || 213;
+  const capP4 = asigMap["PERSONAL 4"]?.pos || 152;
+  const fteP3 = parseFloat(peakCli["PERSONAL 3"] || 0);
+  const fteP4 = parseFloat(peakCli["PERSONAL 4"] || 0);
+
+  const exP3 = Math.max(0, fteP3 - capP3);
+  const exP4 = Math.max(0, fteP4 - capP4);
+  const fP3 = Math.min(fteP3, capP3) + exP4;
+  const fP4 = Math.min(fteP4, capP4) + exP3;
+
   const pisoStats = {};
-  
   for(const [cli, info] of Object.entries(asigMap)){
     const p = info.piso;
     if(!pisoStats[p]) pisoStats[p] = {used: 0, total: 0};
     pisoStats[p].total += info.pos;
-    // Captura decimales del JSON para una ocupación exacta
-    pisoStats[p].used += Math.min(parseFloat(peakCli[cli] || 0), info.pos);
+    let v = parseFloat(peakCli[cli] || 0);
+    if(cli === "PERSONAL 3") v = fP3;
+    if(cli === "PERSONAL 4") v = fP4;
+    pisoStats[p].used += v;
   }
 
   const prows = document.getElementById('piso-rows'); prows.innerHTML = '';
-  Object.entries(pisoStats).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([p, s]) => {
+  Object.entries(pisoStats).sort().forEach(([p, s]) => {
     const pct = (s.used/s.total*100).toFixed(1);
-    prows.innerHTML += `
-      <div class="prow">
-        <span class="pname">Piso ${p}</span>
-        <div class="btrack"><div class="bfill" style="width:${pct}%;background:${oc(pct)}"></div></div>
-        <span class="pstat">${s.used.toFixed(1)} / ${s.total}</span>
-      </div>`;
+    prows.innerHTML += `<div class="prow"><span>Piso ${p}</span><div class="btrack"><div class="bfill" style="width:${Math.min(pct,100)}%;background:${oc(pct)}"></div></div><span class="pstat">${s.used.toFixed(1)} / ${s.total}</span></div>`;
   });
 
   renderCharts(data, pisoStats);
-  renderTable(peakCli, asigMap);
+  renderTable(peakCli, asigMap, fP3, fP4);
+}
+
+function renderTable(peakCli, asigMap, f3, f4){
+  const tbl = document.getElementById('tbl-cli');
+  let h = `<thead><tr><th>Cliente</th><th>Piso</th><th>Asignadas</th><th>Usadas</th><th>Estado</th></tr></thead><tbody>`;
+  Object.entries(asigMap).sort((a,b)=>b[1].pos-a[1].pos).forEach(([cli, info]) => {
+    let u = parseFloat(peakCli[cli] || 0);
+    if(cli === "PERSONAL 3") u = f3; if(cli === "PERSONAL 4") u = f4;
+    const pct = (u / info.pos * 100).toFixed(1);
+    h += `<tr><td>${cli}</td><td>${info.piso}</td><td>${info.pos}</td><td style="color:var(--bl); font-weight:600">${u.toFixed(1)}</td><td><span class="pill ${pct>100?'pr':(pct>90?'pa':'pg')}">${pct}%</span></td></tr>`;
+  });
+  tbl.innerHTML = h + `</tbody>`;
 }
 
 function renderCharts(data, pisoStats){
-  // GRÁFICO DIARIO VÍVIDO
   if(charts.daily) charts.daily.destroy();
   charts.daily = new Chart(document.getElementById('ch-daily'), {
-    type:'line',
-    data: {
-      labels: data.map(d => {
-          const date = new Date(d.Fecha + 'T12:00:00');
-          return date.toLocaleDateString('es-AR', { weekday: 'short', day: '2-digit' });
-      }),
-      datasets: [{
-        label: 'Agentes (FTE Decimal)',
-        data: data.map(d=>d.pico_total),
-        borderColor: '#0366d6', // Azul vívido
-        backgroundColor: 'rgba(3,102,214,0.06)',
-        fill: true,
-        tension: 0.3,
-        pointBackgroundColor: '#0366d6',
-        pointRadius: 3,
-        borderWidth: 2
-      }]
-    },
-    options: { 
-        responsive: true, 
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } }, // Ocultar leyenda
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: '#eaecef' }
-            },
-            x: {
-                grid: { display: false }
-            }
-        }
-    }
+    type:'line', data: { labels: data.map(d=>d.Fecha), datasets: [{ data: data.map(d=>d.pico_total), borderColor: '#0366d6', fill: true, tension: 0.3 }] },
+    options: { responsive: true, maintainAspectRatio: false }
   });
-
-  // GRÁFICO PISOS VÍVIDO
   if(charts.piso) charts.piso.destroy();
   charts.piso = new Chart(document.getElementById('ch-piso'), {
-    type:'bar',
-    data: {
-      labels: Object.keys(pisoStats).map(p=>'Piso '+p),
-      datasets: [{
-        label: 'Ocupados',
-        data: Object.values(pisoStats).map(s=>s.used.toFixed(1)),
-        backgroundColor: '#28a745', // Verde vívido
-        borderRadius: 4
-      },{
-        label: 'Libres',
-        data: Object.values(pisoStats).map(s=>(s.total - s.used).toFixed(1)),
-        backgroundColor: '#e1e4e8', // Gris suave
-        borderRadius: 4
-      }]
-    },
-    options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
-        scales: { 
-            x:{stacked:true, grid: { display: false }}, 
-            y:{stacked:true, grid: { color: '#eaecef' }} 
-        } 
-    }
+    type:'bar', data: { labels: Object.keys(pisoStats), datasets: [{ label: 'Usadas', data: Object.values(pisoStats).map(s=>s.used.toFixed(1)), backgroundColor: '#28a745' }] },
+    options: { responsive: true, maintainAspectRatio: false }
   });
-}
-
-function renderTable(peakCli, asigMap){
-  const tbl = document.getElementById('tbl-cli');
-  let html = `<thead><tr><th>Cliente</th><th>Piso</th><th>Pos. Asignadas</th><th>Usadas (Peak)</th><th>Estado</th></tr></thead><tbody>`;
-  
-  Object.entries(asigMap).sort((a,b)=>b[1].pos - a[1].pos).forEach(([cli, info]) => {
-    const used = parseFloat(peakCli[cli] || 0).toFixed(1);
-    const pos = info.pos;
-    const pct = pos > 0 ? (used / pos * 100).toFixed(1) : 0;
-    
-    // Pill de estado basada en ocupación decimal
-    let pillClass = 'pg'; // Normal
-    if (pct > 90) pillClass = 'pa'; // Alerta
-    if (pct > 100) pillClass = 'pr'; // Crítico
-
-    html += `<tr>
-      <td style="font-weight:600">${cli}</td>
-      <td style="color:var(--m)">${info.piso}</td>
-      <td style="font-family:Roboto Mono">${pos}</td>
-      <td style="font-family:Roboto Mono; font-weight:600; color:var(--bl)">${used}</td>
-      <td><span class="pill ${pillClass}">${pct}%</span></td>
-    </tr>`;
-  });
-  tbl.innerHTML = html + `</tbody>`;
 }
 
 function nav(id, el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('sec-'+id).classList.add('active');
-  el.classList.add('active');
+  document.getElementById('sec-'+id).classList.add('active'); el.classList.add('active');
 }
-
 init();
 </script>
 </body>
