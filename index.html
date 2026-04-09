@@ -42,9 +42,13 @@ body { background: var(--bg); color: var(--t); font-family: 'Inter', sans-serif;
 .pg { background: rgba(46,164,79,0.1); color: var(--g); border: 1px solid rgba(46,164,79,0.2); }
 .pa { background: rgba(246,106,10,0.1); color: var(--a); border: 1px solid rgba(246,106,10,0.2); }
 .pr { background: rgba(215,58,73,0.1); color: var(--r); border: 1px solid rgba(215,58,73,0.2); }
+.loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 20px; font-weight: 600; font-size: 18px; color: var(--bl); }
 </style>
 </head>
 <body>
+
+<div id="loading" class="loading">⏳ Cargando base de datos histórica...</div>
+
 <div class="shell" id="shell" style="display:none">
   <nav class="sidebar">
     <div class="brand"><div class="brand-title">Ocupación Histórica</div></div>
@@ -60,6 +64,7 @@ body { background: var(--bg); color: var(--t); font-family: 'Inter', sans-serif;
       <input type="date" class="date-input" id="date-to" onchange="onDateChange()">
       <span id="period-info" style="margin-left:auto; color:var(--bl); font-weight:600"></span>
     </div>
+
     <div class="section active" id="sec-kpis">
       <div class="kpi-grid">
         <div class="kpi"><div class="kt">POSICIONES ASIGNADAS</div><div class="kv" id="k-pos">-</div></div>
@@ -72,10 +77,12 @@ body { background: var(--bg); color: var(--t); font-family: 'Inter', sans-serif;
       </div>
       <div class="cc"><div style="height:300px"><canvas id="ch-piso"></canvas></div></div>
     </div>
+
     <div class="section" id="sec-daily"><div class="cc"><div style="height:400px"><canvas id="ch-daily"></canvas></div></div></div>
     <div class="section" id="sec-clients"><div class="cc" style="padding:0"><table class="dt" id="tbl-cli"></table></div></div>
   </main>
 </div>
+
 <script>
 let RAW=null, dateFrom='', dateTo='', charts={};
 const oc = v => v<=80?'#2ea44f':v<=100?'#f66a0a':'#d73a49';
@@ -83,14 +90,21 @@ const oc = v => v<=80?'#2ea44f':v<=100?'#f66a0a':'#d73a49';
 async function init(){
   try {
     const res = await fetch('data.json');
+    if(!res.ok) throw new Error("No se encontró data.json");
     RAW = await res.json();
     const dates = RAW.daily.map(d=>d.Fecha).sort();
-    dateFrom=dates[0]; dateTo=dates[dates.length-1];
-    document.getElementById('date-from').value=dateFrom;
-    document.getElementById('date-to').value=dateTo;
+    if(dates.length > 0) {
+        dateFrom=dates[0]; dateTo=dates[dates.length-1];
+        document.getElementById('date-from').value=dateFrom;
+        document.getElementById('date-to').value=dateTo;
+    }
+    document.getElementById('loading').style.display='none';
     document.getElementById('shell').style.display='grid';
     render();
-  } catch(e) { console.error("Error cargando JSON", e); }
+  } catch(e) { 
+      document.getElementById('loading').textContent='Error: Asegurate de tener el archivo data.json al lado de este HTML.';
+      console.error(e); 
+  }
 }
 
 function onDateChange(){
@@ -99,31 +113,47 @@ function onDateChange(){
   render();
 }
 
+function clearView() {
+    document.getElementById('k-max').textContent = '0%';
+    document.getElementById('k-mf').textContent = '-';
+    document.getElementById('piso-rows').innerHTML = '<div style="color:var(--m); padding:30px; text-align:center; font-weight:500">Sin datos en el rango seleccionado</div>';
+    document.getElementById('tbl-cli').innerHTML = '<tbody><tr><td style="text-align:center; padding:50px; color:var(--m)">No hay registros para mostrar</td></tr></tbody>';
+    if(charts.daily) { charts.daily.destroy(); charts.daily = null; }
+    if(charts.piso) { charts.piso.destroy(); charts.piso = null; }
+}
+
 function render(){
   const data = RAW.daily.filter(d => d.Fecha >= dateFrom && d.Fecha <= dateTo);
-  if (data.length === 0) return;
+  const totalPos = RAW.meta.total_pos;
+  document.getElementById('k-pos').textContent = totalPos;
+  document.getElementById('period-info').textContent = 'Actualizado: ' + (RAW.meta.updated || '');
+
+  if (data.length === 0) {
+      clearView();
+      return;
+  }
 
   const asigMap = RAW.meta.asigMap;
   const maxOcc = Math.max(...data.map(d=>d.occ_pct));
   const maxDayRaw = data.find(d=>d.occ_pct === maxOcc)?.Fecha || '-';
   
-  // CORRECCIÓN FINAL FECHA: Evitar interpretación UTC
   if(maxDayRaw !== '-') {
       const p = maxDayRaw.split('-');
       const dLocal = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
       document.getElementById('k-mf').textContent = dLocal.toLocaleDateString('es-AR', {day:'2-digit', month:'long'});
   }
 
-  document.getElementById('k-pos').textContent = RAW.meta.total_pos;
   document.getElementById('k-max').textContent = maxOcc + '%';
-  document.getElementById('period-info').textContent = 'Actualizado: ' + RAW.meta.updated;
 
-  // Lógica Rebalse Personal
   const peakCli = (maxDayRaw !== '-' && RAW.daily_per_client[maxDayRaw]) ? RAW.daily_per_client[maxDayRaw] : {};
   const capP3 = asigMap["PERSONAL 3"]?.pos || 213;
   const capP4 = asigMap["PERSONAL 4"]?.pos || 152;
-  const fP3 = Math.min(parseFloat(peakCli["PERSONAL 3"]||0), capP3) + Math.max(0, parseFloat(peakCli["PERSONAL 4"]||0) - capP4);
-  const fP4 = Math.min(parseFloat(peakCli["PERSONAL 4"]||0), capP4) + Math.max(0, parseFloat(peakCli["PERSONAL 3"]||0) - capP3);
+  
+  const valP3Raw = parseFloat(peakCli["PERSONAL 3"]||0);
+  const valP4Raw = parseFloat(peakCli["PERSONAL 4"]||0);
+
+  const fP3 = Math.min(valP3Raw, capP3) + Math.max(0, valP4Raw - capP4);
+  const fP4 = Math.min(valP4Raw, capP4) + Math.max(0, valP3Raw - capP3);
 
   const pisoStats = {};
   for(const [cli, info] of Object.entries(asigMap)){
