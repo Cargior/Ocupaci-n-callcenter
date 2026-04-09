@@ -3,23 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reporte de Ocupación</title>
+<title>Reporte de Ocupacion</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root{
-  --bg:#0f0f10;--s:#18181b;--s2:#1f1f23;--b:rgba(255,255,255,0.07);
-  --t:#f0ede8;--m:#888480;--g:#22c98a;--a:#f5a623;--r:#e05252;--bl:#4a9eff;--rad:10px
-}
+:root{--bg:#0f0f10;--s:#18181b;--s2:#1f1f23;--b:rgba(255,255,255,0.07);--t:#f0ede8;--m:#888480;--g:#22c98a;--a:#f5a623;--r:#e05252;--bl:#4a9eff;--rad:10px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh}
-
-/* ── Shell ── */
 .shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
 .sidebar{background:var(--s);border-right:1px solid var(--b);padding:28px 0;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
 .main{padding:32px 40px;max-width:1120px}
-
-/* ── Sidebar ── */
 .brand{padding:0 22px 24px;border-bottom:1px solid var(--b);margin-bottom:20px}
 .brand-title{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--g)}
 .brand-sub{font-size:11px;color:var(--m);margin-top:2px}
@@ -31,27 +24,25 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .sf{margin-top:auto;padding:16px 22px;font-size:11px;color:var(--m);border-top:1px solid var(--b)}
 .sf .per{color:var(--t);font-weight:500;word-break:break-all}
 .sf .upd{font-size:10px;color:#444;margin-top:3px}
-
-/* ── Period filter bar ── */
-.period-bar{background:var(--s);border:1px solid var(--b);border-radius:var(--rad);padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.period-bar label{font-size:12px;color:var(--m);font-weight:500}
-.date-input{background:var(--s2);border:1px solid var(--b);border-radius:6px;color:var(--t);font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;cursor:pointer;outline:none;transition:border .15s}
-.date-input:focus{border-color:rgba(34,201,138,.4)}
-.date-sep{color:var(--m);font-size:12px}
-.period-presets{display:flex;gap:6px;margin-left:auto}
-.preset{padding:4px 12px;font-size:11px;font-family:'DM Sans',sans-serif;border-radius:20px;border:1px solid var(--b);background:transparent;color:var(--m);cursor:pointer;transition:all .15s}
-.preset:hover{color:var(--t);border-color:rgba(255,255,255,.2)}
-.preset.active{background:rgba(34,201,138,.12);color:var(--g);border-color:rgba(34,201,138,.3)}
-.period-info{font-size:11px;color:var(--m);padding:0 4px}
-.period-info strong{color:var(--t);font-family:'DM Mono',monospace}
-
-/* ── Sections ── */
 .section{display:none}.section.active{display:block}
 .sh{margin-bottom:24px}
 .st{font-size:22px;font-weight:600;letter-spacing:-.02em}
 .ss{font-size:13px;color:var(--m);margin-top:4px}
 
-/* ── KPI grid ── */
+/* Period bar */
+.period-bar{background:var(--s);border:1px solid var(--b);border-radius:var(--rad);padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.period-bar label{font-size:12px;color:var(--m);font-weight:500}
+.date-input{background:var(--s2);border:1px solid var(--b);border-radius:6px;color:var(--t);font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;outline:none;transition:border .15s}
+.date-input:focus{border-color:rgba(34,201,138,.4)}
+.date-sep{color:var(--m);font-size:12px}
+.presets{display:flex;gap:6px;margin-left:auto}
+.preset{padding:4px 12px;font-size:11px;font-family:'DM Sans',sans-serif;border-radius:20px;border:1px solid var(--b);background:transparent;color:var(--m);cursor:pointer;transition:all .15s}
+.preset:hover{color:var(--t)}
+.preset.active{background:rgba(34,201,138,.12);color:var(--g);border-color:rgba(34,201,138,.3)}
+.period-info{font-size:11px;color:var(--m)}
+.period-info strong{color:var(--t);font-family:'DM Mono',monospace}
+
+/* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 .kpi{background:var(--s);border:1px solid var(--b);border-radius:var(--rad);padding:18px 20px;position:relative;overflow:hidden}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--g));opacity:.65}
@@ -59,22 +50,21 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .kv{font-size:26px;font-weight:600;letter-spacing:-.02em;font-family:'DM Mono',monospace}
 .ks{font-size:11px;color:var(--m);margin-top:4px}
 
-/* ── Piso free bar ── */
+/* Free bar */
 .free-card{background:var(--s);border:1px solid var(--b);border-radius:var(--rad);padding:20px 22px;margin-bottom:20px}
 .free-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
-.free-title{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--m)}
+.free-title{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--m)}
 .free-summary{font-size:12px;color:var(--m)}
 .free-summary strong{color:var(--t);font-family:'DM Mono',monospace}
 .piso-rows{display:flex;flex-direction:column;gap:10px}
-.prow{display:grid;grid-template-columns:64px 1fr 100px;align-items:center;gap:12px}
+.prow{display:grid;grid-template-columns:64px 1fr 120px;align-items:center;gap:12px}
 .pname{font-size:12px;font-weight:500;color:var(--t)}
 .btrack{height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
 .bfill{height:100%;border-radius:4px;transition:width .5s ease}
 .pnums{font-size:11px;font-family:'DM Mono',monospace;color:var(--m);text-align:right;white-space:nowrap}
-.pnums .free{color:var(--bl)}
-.pnums .used{color:var(--g)}
+.pnums .u{color:var(--g)}.pnums .f{color:var(--bl)}
 
-/* ── Charts ── */
+/* Charts */
 .cc{background:var(--s);border:1px solid var(--b);border-radius:var(--rad);padding:20px 22px;margin-bottom:18px}
 .ct{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--m);margin-bottom:14px}
 .cw{position:relative;width:100%}
@@ -83,7 +73,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .fb.active{background:var(--g);color:#000;border-color:var(--g);font-weight:500}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 
-/* ── Table ── */
+/* Table */
 .dt{width:100%;border-collapse:collapse;font-size:13px}
 .dt th{text-align:left;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--m);padding:10px 14px;border-bottom:1px solid var(--b);white-space:nowrap}
 .dt td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap}
@@ -96,18 +86,16 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .alert{background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:8px;padding:12px 16px;font-size:12px;color:#f08080;margin-bottom:18px;display:none}
 .no-data{color:var(--m);font-size:13px;padding:24px;text-align:center}
 
-/* ── Map ── */
-.ftabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+/* Map */
+.ftabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .ftab{padding:5px 14px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;border-radius:20px;border:1px solid var(--b);background:transparent;color:var(--m);cursor:pointer;transition:all .15s}
-.ftab.active{background:var(--s2);color:var(--t);border-color:rgba(255,255,255,.15)}
-.finfo{display:flex;gap:14px;align-items:center;margin-bottom:10px;font-size:12px;color:var(--m);flex-wrap:wrap}
-.map-note{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
-.mn{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--m)}
-.mndot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.ftab.active{background:var(--s2);color:var(--t);border-color:rgba(255,255,255,.2)}
+.map-legend{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap}
+.mleg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--m)}
+.mleg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.finfo{display:flex;gap:16px;align-items:center;margin-bottom:10px;font-size:13px;color:var(--m);flex-wrap:wrap}
+.finfo strong{color:var(--t)}
 .mwrap{overflow:auto;background:#0a0a0b;border:1px solid var(--b);border-radius:8px;padding:14px;max-height:460px}
-.fleg{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
-.fli{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--m);padding:3px 9px;border-radius:20px;background:var(--s);border:1px solid var(--b)}
-.fdot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 
 .loading{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:14px;color:var(--m);flex-direction:column;gap:12px}
 .spin{width:24px;height:24px;border:2px solid rgba(34,201,138,.2);border-top-color:var(--g);border-radius:50%;animation:spin .8s linear infinite}
@@ -118,7 +106,8 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   .sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:12px;border-right:none;border-bottom:1px solid var(--b)}
   .brand{padding:0;border:none;margin:0}.nsec,.sf{display:none}
   .kpi-grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.main{padding:16px}
-  .period-bar{gap:10px}.period-presets{margin-left:0}
+  .period-bar{gap:10px}.presets{margin-left:0}
+  .prow{grid-template-columns:50px 1fr 100px}
 }
 </style>
 </head>
@@ -126,13 +115,13 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 
 <div class="shell" id="shell" style="display:none">
   <nav class="sidebar">
-    <div class="brand"><div class="brand-title">Workforce</div><div class="brand-sub">Reporte de Ocupación</div></div>
+    <div class="brand"><div class="brand-title">Workforce</div><div class="brand-sub">Reporte de Ocupacion</div></div>
     <div class="nsec">Vistas</div>
     <div class="nav-item active" onclick="nav('kpis',this)">
       <svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="8" width="3" height="7" rx="1"/><rect x="6" y="4" width="3" height="11" rx="1"/><rect x="11" y="1" width="3" height="14" rx="1"/></svg>Resumen ejecutivo
     </div>
     <div class="nav-item" onclick="nav('daily',this)">
-      <svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,11 5,6 9,9 15,2"/></svg>Ocupación diaria
+      <svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,11 5,6 9,9 15,2"/></svg>Ocupacion diaria
     </div>
     <div class="nav-item" onclick="nav('clients',this)">
       <svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>Por cliente
@@ -141,118 +130,110 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
       <svg class="ni" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="14" height="14" rx="2"/><line x1="6" y1="1" x2="6" y2="15"/><line x1="10" y1="1" x2="10" y2="15"/><line x1="1" y1="6" x2="15" y2="6"/></svg>Mapa de pisos
     </div>
     <div class="sf">
-      <div class="per" id="sf-per">—</div>
-      <div class="upd" id="sf-upd">—</div>
+      <div class="per" id="sf-per">-</div>
+      <div class="upd" id="sf-upd">-</div>
     </div>
   </nav>
 
   <main class="main">
-
-    <!-- Period filter bar (shared across all sections) -->
+    <!-- Period bar -->
     <div class="period-bar">
       <label>Desde</label>
       <input type="date" class="date-input" id="date-from" onchange="onDateChange()">
-      <span class="date-sep">→</span>
+      <span class="date-sep">a</span>
       <label>Hasta</label>
       <input type="date" class="date-input" id="date-to" onchange="onDateChange()">
       <span class="period-info" id="period-info"></span>
-      <div class="period-presets">
-        <button class="preset" onclick="setPreset('week')">Última semana</button>
-        <button class="preset" onclick="setPreset('month')">Último mes</button>
-        <button class="preset active" onclick="setPreset('all')">Todo el período</button>
+      <div class="presets">
+        <button class="preset" onclick="setPreset('week',this)">Ultima semana</button>
+        <button class="preset" onclick="setPreset('month',this)">Ultimo mes</button>
+        <button class="preset active" onclick="setPreset('all',this)">Todo</button>
       </div>
     </div>
 
-    <!-- ── KPIs ── -->
+    <!-- KPIs -->
     <div class="section active" id="sec-kpis">
       <div class="sh"><div class="st">Resumen ejecutivo</div><div class="ss" id="kpi-per"></div></div>
       <div class="kpi-grid">
-        <div class="kpi" style="--ac:#22c98a"><div class="kl">Posiciones asignadas</div><div class="kv" id="k-pos">—</div><div class="ks">base de cálculo</div></div>
-        <div class="kpi" style="--ac:#4a9eff"><div class="kl">Occ. promedio laboral</div><div class="kv" id="k-occ">—</div><div class="ks">pico franja · 6 h</div></div>
-        <div class="kpi" style="--ac:#f5a623"><div class="kl">Pico máximo período</div><div class="kv" id="k-max">—</div><div class="ks" id="k-mf">—</div></div>
-        <div class="kpi" style="--ac:#e05252"><div class="kl">Clientes &gt;100% occ.</div><div class="kv" id="k-over">—</div><div class="ks">requieren revisión</div></div>
+        <div class="kpi" style="--ac:#22c98a"><div class="kl">Posiciones asignadas</div><div class="kv" id="k-pos">-</div><div class="ks">base de calculo presencial</div></div>
+        <div class="kpi" style="--ac:#4a9eff"><div class="kl">Occ. promedio laboral</div><div class="kv" id="k-occ">-</div><div class="ks">pico franja 30 min . 6 h</div></div>
+        <div class="kpi" style="--ac:#f5a623"><div class="kl">Pico maximo periodo</div><div class="kv" id="k-max">-</div><div class="ks" id="k-mf">-</div></div>
+        <div class="kpi" style="--ac:#e05252"><div class="kl">Clientes >100% occ.</div><div class="kv" id="k-over">-</div><div class="ks">requieren revision</div></div>
       </div>
       <div class="kpi-grid">
-        <div class="kpi" style="--ac:#4a9eff"><div class="kl">Pos. libres en día pico</div><div class="kv" id="k-free">—</div><div class="ks" id="k-free-s">del período filtrado</div></div>
-        <div class="kpi" style="--ac:#22c98a"><div class="kl">Pos. usadas en día pico</div><div class="kv" id="k-used">—</div><div class="ks" id="k-used-s">—</div></div>
-        <div class="kpi" style="--ac:#888"><div class="kl">Días laborales</div><div class="kv" id="k-dias">—</div><div class="ks">en el período</div></div>
-        <div class="kpi" style="--ac:#888"><div class="kl">Occ. fin de semana</div><div class="kv" id="k-finde">—</div><div class="ks">promedio sáb–dom</div></div>
+        <div class="kpi" style="--ac:#4a9eff"><div class="kl">Pos. libres en dia pico</div><div class="kv" id="k-free">-</div><div class="ks" id="k-free-s">-</div></div>
+        <div class="kpi" style="--ac:#22c98a"><div class="kl">Pos. usadas en dia pico</div><div class="kv" id="k-used">-</div><div class="ks" id="k-used-s">-</div></div>
+        <div class="kpi" style="--ac:#888"><div class="kl">Dias laborales</div><div class="kv" id="k-dias">-</div><div class="ks">en el periodo</div></div>
+        <div class="kpi" style="--ac:#888"><div class="kl">Occ. fin de semana</div><div class="kv" id="k-finde">-</div><div class="ks">promedio sab-dom</div></div>
       </div>
-
       <div class="free-card">
         <div class="free-header">
-          <div class="free-title">Posiciones libres por piso — día pico del período</div>
+          <div class="free-title">Posiciones por piso — dia pico del periodo</div>
           <div class="free-summary" id="free-summary"></div>
         </div>
         <div class="piso-rows" id="piso-rows"></div>
       </div>
-
       <div class="two">
         <div class="cc"><div class="ct">Laboral vs fin de semana</div><div class="cw" style="height:190px"><canvas id="ch-cmp"></canvas></div></div>
-        <div class="cc"><div class="ct">Ocupación por piso — día pico</div><div class="cw" style="height:190px"><canvas id="ch-piso"></canvas></div></div>
+        <div class="cc"><div class="ct">Usadas vs libres por piso (dia pico)</div><div class="cw" style="height:190px"><canvas id="ch-piso"></canvas></div></div>
       </div>
     </div>
 
-    <!-- ── Daily ── -->
+    <!-- Daily -->
     <div class="section" id="sec-daily">
-      <div class="sh"><div class="st">Ocupación diaria</div><div class="ss">Pico simultáneo presencial / posiciones · jornada 6 h</div></div>
+      <div class="sh"><div class="st">Ocupacion diaria</div><div class="ss">Pico simultaneo presencial / posiciones asignadas . jornada 6 h</div></div>
       <div class="fr">
         <button class="fb active" onclick="setDF('weekday',this)">Laborales</button>
         <button class="fb" onclick="setDF('weekend',this)">Fin de semana</button>
         <button class="fb" onclick="setDF('all',this)">Todos</button>
       </div>
-      <div class="cc"><div class="ct">% ocupación diaria</div><div class="cw" style="height:300px"><canvas id="ch-daily"></canvas></div></div>
+      <div class="cc"><div class="ct">% ocupacion diaria</div><div class="cw" style="height:300px"><canvas id="ch-daily"></canvas></div></div>
     </div>
 
-    <!-- ── Clients ── -->
+    <!-- Clients -->
     <div class="section" id="sec-clients">
-      <div class="sh"><div class="st">Por cliente</div><div class="ss">Promedio días laborales · metodología pico franja 30 min</div></div>
+      <div class="sh"><div class="st">Por cliente</div><div class="ss">Promedio dias laborales . metodologia pico franja 30 min . solo presencial</div></div>
       <div class="alert" id="al-over"></div>
-      <div class="cc"><div class="ct">% ocupación promedio</div><div class="cw" style="height:340px"><canvas id="ch-cli"></canvas></div></div>
-      <div class="cc"><div class="ct">Detalle — incluye posiciones libres en día pico del período</div>
+      <div class="cc"><div class="ct">% ocupacion promedio por cliente</div><div class="cw" style="height:340px"><canvas id="ch-cli"></canvas></div></div>
+      <div class="cc"><div class="ct">Detalle — posiciones libres del dia pico del periodo</div>
         <div style="overflow-x:auto"><table class="dt" id="tbl-cli"></table></div>
       </div>
     </div>
 
-    <!-- ── Mapa ── -->
+    <!-- Mapa -->
     <div class="section" id="sec-mapa">
-      <div class="sh"><div class="st">Mapa de pisos</div><div class="ss" id="map-subtitle">Día pico del período seleccionado</div></div>
+      <div class="sh">
+        <div class="st">Mapa de pisos</div>
+        <div class="ss" id="map-sub">Dia pico del periodo seleccionado</div>
+      </div>
       <div class="ftabs" id="ftabs"></div>
-      <div class="map-note">
-        <span class="mn"><span class="mndot" style="background:var(--g);opacity:.8"></span>Posición usada (coloreada por cliente)</span>
-        <span class="mn"><span class="mndot" style="background:#1a1a1d;border:1px solid rgba(255,255,255,.1)"></span>Posición libre</span>
+      <div class="map-legend">
+        <span class="mleg"><span class="mleg-dot" style="background:#4a9eff"></span>Posicion ocupada (presencial en pico)</span>
+        <span class="mleg"><span class="mleg-dot" style="background:#1a1a1d;border:1px solid rgba(255,255,255,0.12)"></span>Posicion libre</span>
       </div>
       <div class="finfo" id="finfo"></div>
       <div class="mwrap" id="mwrap"></div>
-      <div class="fleg" id="fleg"></div>
     </div>
-
   </main>
 </div>
 
 <div class="loading" id="loading"><div class="spin"></div>Cargando reporte...</div>
 
 <script>
-// ── Globals ───────────────────────────────────────────────────────────────────
-let RAW = null;          // raw data from data.json
-let dateFrom = '';       // current filter start
-let dateTo   = '';       // current filter end
-let dailyFilt = 'weekday';
-let curFloor  = 0;
-let charts    = {};
+let RAW=null, dateFrom='', dateTo='', dailyFilt='weekday', curFloor=0, charts={};
 
-// ── Floor map definitions ─────────────────────────────────────────────────────
-const FLOORS = [
-  {name:'PB', clients:{'SPAZIOS':'#9FE1CB','LEIVA JOYAS':'#FAC775','YAMAHA':'#97C459','METROGAS':'#f5a623','UNICEF':'#ebd87a','SUPERVIELLE':'#AFA9EC','BBVA':'#4a9eff','BANCO PIANO':'#639922','BANCO BICE':'#888480','OMINT':'#7c6ff7','MIRGOR':'#F4C0D1','ASSURANT':'#F09595','BSF':'#C0DD97'},
-    cells:[...[4,5,6,7,8,9,10,11,12,13,14,15].map(c=>({r:0,c,cl:'SPAZIOS'})),...[4,5,6,7,8,9,10,11,12,13,14,15].map(c=>({r:5,c,cl:'SPAZIOS'})),...[2,4,5,6,7,8,9,10,11,12,13,14,15].map(c=>({r:7,c,cl:'LEIVA JOYAS'})),{r:8,c:2,cl:'YAMAHA'},{r:10,c:2,cl:'METROGAS'},...[2,4,5,6,9,10,11,12,13,14,15].map(c=>({r:12,c,cl:'UNICEF'})),...[2,4,5,6,9,10,11,12,13,14,15].map(c=>({r:14,c,cl:'SUPERVIELLE'})),...[16,18,20,22,24,26].map(r=>({r,c:2,cl:'SUPERVIELLE'})),...[4,5,6,7,8,9,10,11].map(c=>({r:19,c,cl:'SUPERVIELLE'})),...[4,5,6,7,8,9,10,11].map(c=>({r:21,c,cl:'SUPERVIELLE'})),...[4,5,6,7,8,9,10,11,12].map(c=>({r:26,c,cl:'SUPERVIELLE'})),...[0,3,5,6,7,8].map(c=>({r:45,c,cl:'BBVA'})),...[0,3,4,5,6,7,8].map(c=>({r:46,c,cl:'BBVA'})),...[47,48,49].map(r=>({r,c:0,cl:'BBVA'})),...[3,4,5,6,7,8,9,10,11,12].map(c=>({r:49,c,cl:'BBVA'})),...[3,4,5,6,7,8,9,10,11,12].map(c=>({r:50,c,cl:'BBVA'})),...[3,6,7,8,9,10,11,12].map(c=>({r:54,c,cl:'BANCO PIANO'})),...[3,6,7,8,9,10,11,12].map(c=>({r:55,c,cl:'BANCO PIANO'})),...[1,2,3,4,5,6,7,8,9,10,11,12].map(c=>({r:59,c,cl:'BANCO BICE'})),...[2,4,7,9,12,14,16].map(c=>({r:65,c,cl:'OMINT'})),...[72,75,82,85].flatMap(r=>[1,3,5,7].map(c=>({r,c,cl:'OMINT'}))),...[92,95,102].flatMap(r=>[1,3,5,7,9,11,13].map(c=>({r,c,cl:'MIRGOR'}))),...[2,3,4].map(c=>({r:117,c,cl:'ASSURANT'})),...[120,126,129,134,137].flatMap(r=>[2,3,4].map(c=>({r,c,cl:'BSF'})))]},
-  {name:'1°',clients:{'SANTANDER':'#4a9eff','GALICIA SEGUROS':'#7c6ff7'},
-    cells:[...[5,6,7,8].flatMap(r=>[4,5,8,9,14,17,18,21,22,25,26,29,30,33,34,37].map(c=>({r,c,cl:'SANTANDER'}))),...[9,10,11,12,13,14].flatMap(r=>[14,17,18,21,22,25,26,29,30,33,34,37].map(c=>({r,c,cl:'SANTANDER'}))),...[9,10,11,12,13].flatMap(r=>[4,5].map(c=>({r,c,cl:'GALICIA SEGUROS'}))),...[28,29,30,31].flatMap(r=>[0,2,3,5,6,8,9].map(c=>({r,c,cl:'GALICIA SEGUROS'}))),...[29,30,31].flatMap(r=>[14,15,17,18].map(c=>({r,c,cl:'GALICIA SEGUROS'})))]},
-  {name:'3°',clients:{'PERSONAL 3':'#e05252','NATURGY':'#22c98a'},
-    cells:[...[16,17,18,19,20,21].flatMap(r=>[2,3,5,6,8,9,11,12,14,15,17,18,20,21,23,24,26,27].map(c=>({r,c,cl:'PERSONAL 3'}))),...[24,25,26,27,28,29,30].flatMap(r=>[0,1,37,38,40].map(c=>({r,c,cl:'PERSONAL 3'}))),...[25,26,27,28,29,30].flatMap(r=>[25,26,28,29,31,32,34,35].map(c=>({r,c,cl:'PERSONAL 3'}))),...[1,2,4,5,8,9,11,12,14,15].flatMap(r=>[30,31,32].map(c=>({r,c,cl:'PERSONAL 3'}))),...[1,2,4,5,8,9,11,12,14,15].map(r=>({r,c:33,cl:'NATURGY'})),...[24,25,26,27,28,29,30].map(r=>({r,c:41,cl:'NATURGY'}))]},
-  {name:'4°',clients:{'PERSONAL 4':'#f5713b'},
-    cells:[...[1,2,3,4,5].flatMap(r=>[2,3,5,6,8,9,11,12,14,15,17,18,20,21,23,24,26,27].map(c=>({r,c,cl:'PERSONAL 4'}))),...[10,11,12,13,14,15,16].flatMap(r=>[21,22,24,25,27,28,30,31,33,34,36,37,39,40,42,43].map(c=>({r,c,cl:'PERSONAL 4'}))),...[12,13,14,15,16].flatMap(r=>[0,2,3,5].map(c=>({r,c,cl:'PERSONAL 4'})))]},
-  {name:'PERON',clients:{'SANTANDER GETNET':'#185FA5','NATURGY':'#22c98a','SUPERVIELLE SEGUROS':'#3B8BD4'},
-    cells:[...[2,3,4,5,6,7,8,11,12,13].flatMap(r=>[1,3,4,6,7].map(c=>({r,c,cl:'SANTANDER GETNET'}))),...[2,3,4,5,6,7,8,11,12,13].map(r=>({r,c:9,cl:'NATURGY'})),...[4,5,6,7,8].map(r=>({r,c:10,cl:'NATURGY'})),...[2,3,4,5,6,7,8].flatMap(r=>[13,15,16,18,19,21].map(c=>({r,c,cl:'SUPERVIELLE SEGUROS'}))),...[11,12,13,14].flatMap(r=>[15,16,18,19,21].map(c=>({r,c,cl:'SUPERVIELLE SEGUROS'})))]}
+// Floor cell maps — position grid only, no client colors
+const FLOORS=[
+  {name:'PB',pisos:['PB'],
+   cells:[...[4,5,6,7,8,9,10,11,12,13,14,15].map(c=>({r:0,c})),...[4,5,6,7,8,9,10,11,12,13,14,15].map(c=>({r:5,c})),...[2,4,5,6,7,8,9,10,11,12,13,14,15].map(c=>({r:7,c})),{r:8,c:2},{r:10,c:2},...[2,4,5,6,9,10,11,12,13,14,15].map(c=>({r:12,c})),...[2,4,5,6,9,10,11,12,13,14,15].map(c=>({r:14,c})),...[16,18,20,22,24,26].map(r=>({r,c:2})),...[4,5,6,7,8,9,10,11].map(c=>({r:19,c})),...[4,5,6,7,8,9,10,11].map(c=>({r:21,c})),...[4,5,6,7,8,9,10,11,12].map(c=>({r:26,c})),...[0,3,5,6,7,8].map(c=>({r:45,c})),...[0,3,4,5,6,7,8].map(c=>({r:46,c})),...[47,48,49].map(r=>({r,c:0})),...[3,4,5,6,7,8,9,10,11,12].map(c=>({r:49,c})),...[3,4,5,6,7,8,9,10,11,12].map(c=>({r:50,c})),...[3,6,7,8,9,10,11,12].map(c=>({r:54,c})),...[3,6,7,8,9,10,11,12].map(c=>({r:55,c})),...[1,2,3,4,5,6,7,8,9,10,11,12].map(c=>({r:59,c})),...[2,4,7,9,12,14,16].map(c=>({r:65,c})),...[72,75,82,85].flatMap(r=>[1,3,5,7].map(c=>({r,c}))),...[92,95,102].flatMap(r=>[1,3,5,7,9,11,13].map(c=>({r,c}))),...[2,3,4].map(c=>({r:117,c})),...[120,126,129,134,137].flatMap(r=>[2,3,4].map(c=>({r,c})))]},
+  {name:'1',pisos:['1 '],
+   cells:[...[5,6,7,8].flatMap(r=>[4,5,8,9,14,17,18,21,22,25,26,29,30,33,34,37].map(c=>({r,c}))),...[9,10,11,12,13,14].flatMap(r=>[4,5,8,9,14,17,18,21,22,25,26,29,30,33,34,37].map(c=>({r,c}))),...[28,29,30,31].flatMap(r=>[0,2,3,5,6,8,9,14,15,17,18].map(c=>({r,c})))]},
+  {name:'3',pisos:['3 '],
+   cells:[...[16,17,18,19,20,21].flatMap(r=>[2,3,5,6,8,9,11,12,14,15,17,18,20,21,23,24,26,27].map(c=>({r,c}))),...[24,25,26,27,28,29,30].flatMap(r=>[0,1,37,38,40].map(c=>({r,c}))),...[25,26,27,28,29,30].flatMap(r=>[25,26,28,29,31,32,34,35].map(c=>({r,c}))),...[1,2,4,5,8,9,11,12,14,15].flatMap(r=>[30,31,32,33].map(c=>({r,c})))]},
+  {name:'4',pisos:['4 '],
+   cells:[...[1,2,3,4,5].flatMap(r=>[2,3,5,6,8,9,11,12,14,15,17,18,20,21,23,24,26,27].map(c=>({r,c}))),...[10,11,12,13,14,15,16].flatMap(r=>[21,22,24,25,27,28,30,31,33,34,36,37,39,40,42,43].map(c=>({r,c}))),...[12,13,14,15,16].flatMap(r=>[0,2,3,5].map(c=>({r,c})))]},
+  {name:'PERON',pisos:['PERON'],
+   cells:[...[2,3,4,5,6,7,8,11,12,13].flatMap(r=>[1,3,4,6,7,9,10].map(c=>({r,c}))),...[2,3,4,5,6,7,8].flatMap(r=>[13,15,16,18,19,21].map(c=>({r,c}))),...[11,12,13,14].flatMap(r=>[15,16,18,19,21].map(c=>({r,c})))]}
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -260,162 +241,136 @@ const oc  = v => v<=80?'#22c98a':v<=100?'#f5a623':'#e05252';
 const pc  = v => v<=80?'pg':v<=100?'pa':'pr';
 const fmt = v => (v||0).toLocaleString();
 const dow = f => new Date(f+'T12:00:00').getDay();
+const inR = f => f>=dateFrom && f<=dateTo;
 
-function inRange(f){ return f>=dateFrom && f<=dateTo; }
-
-// ── Computed from current filter ──────────────────────────────────────────────
-function computeFiltered(){
+// ── Core compute ──────────────────────────────────────────────────────────────
+function compute(){
   const asigMap  = RAW.meta.asigMap;
   const totalPos = RAW.meta.total_pos;
 
-  // daily in range
-  const daily = RAW.daily.filter(d=>inRange(d.Fecha));
+  const daily = RAW.daily.filter(d=>inR(d.Fecha));
   const lab   = daily.filter(d=>d.dow>0&&d.dow<6);
   const finde = daily.filter(d=>d.dow===0||d.dow===6);
 
-  // KPIs
-  const labAvg  = lab.length  ? +(lab.reduce((s,d)=>s+d.occ_pct,0)/lab.length).toFixed(1) : 0;
-  const labMax  = lab.length  ? Math.max(...lab.map(d=>d.occ_pct)) : 0;
-  const labMaxF = lab.find(d=>d.occ_pct===labMax)?.Fecha || '—';
-  const findeAvg= finde.length? +(finde.reduce((s,d)=>s+d.occ_pct,0)/finde.length).toFixed(1):0;
+  const labAvg   = lab.length  ? +(lab.reduce((s,d)=>s+d.occ_pct,0)/lab.length).toFixed(1):0;
+  const labMax   = lab.length  ? Math.max(...lab.map(d=>d.occ_pct)):0;
+  const labMaxF  = lab.find(d=>d.occ_pct===labMax)?.Fecha||'-';
+  const findeAvg = finde.length? +(finde.reduce((s,d)=>s+d.occ_pct,0)/finde.length).toFixed(1):0;
 
-  // Peak day per-client data
-  const peakDate = labMaxF;
-  const peakCli  = (peakDate!=='—' && RAW.daily_per_client[peakDate]) ? RAW.daily_per_client[peakDate] : {};
+  // Peak day presencial data
+  const peakCli = (labMaxF!=='-' && RAW.daily_per_client[labMaxF]) ? RAW.daily_per_client[labMaxF] : {};
 
-  // Positions used/free on peak day
-  let totalUsed=0;
-  const pisoStats = {};
-  for(const [cli, info] of Object.entries(asigMap)){
-    const piso  = info.piso;
-    const pos   = info.pos;
-    const used  = Math.min(peakCli[cli]||0, pos);
-    const free  = pos - used;
-    totalUsed  += used;
-    if(!pisoStats[piso]) pisoStats[piso]={used:0,total:0};
-    pisoStats[piso].used  += used;
-    pisoStats[piso].total += pos;
+  // Per piso: used = min(peak_presencial, posiciones_asignadas)
+  const pisoStats={};
+  for(const [cli,info] of Object.entries(asigMap)){
+    const p=info.piso;
+    if(!pisoStats[p]) pisoStats[p]={used:0,total:0};
+    pisoStats[p].total += info.pos;
+    pisoStats[p].used  += Math.min(peakCli[cli]||0, info.pos);
   }
+
+  const totalUsed = Object.values(pisoStats).reduce((s,v)=>s+v.used,0);
   const totalFree = totalPos - totalUsed;
 
-  // By client (labor days in range)
-  const cliMap = {};
-  for(const [fecha, clients] of Object.entries(RAW.daily_per_client)){
-    if(!inRange(fecha)) continue;
-    const d = dow(fecha);
-    if(d===0||d===6) continue;
-    for(const [cli, peak] of Object.entries(clients)){
-      const info = asigMap[cli]; if(!info) continue;
-      const occ  = +(peak/info.pos*100).toFixed(1);
+  // By client (labor days in range, presencial only)
+  const cliMap={};
+  for(const [fecha,clients] of Object.entries(RAW.daily_per_client)){
+    if(!inR(fecha)) continue;
+    const d=dow(fecha); if(d===0||d===6) continue;
+    for(const [cli,peak] of Object.entries(clients)){
+      const info=asigMap[cli]; if(!info) continue;
+      const occ=+(peak/info.pos*100).toFixed(1);
       if(!cliMap[cli]) cliMap[cli]={sum:0,cnt:0,maxP:0,dias:new Set()};
       cliMap[cli].sum+=occ; cliMap[cli].cnt++;
       cliMap[cli].dias.add(fecha);
       if(peak>cliMap[cli].maxP) cliMap[cli].maxP=peak;
     }
   }
-  const byClient = [];
+  const byClient=[];
   for(const [cli,v] of Object.entries(cliMap)){
-    const info   = asigMap[cli]||{};
-    const pos    = info.pos||0;
-    const usedPk = Math.min(peakCli[cli]||0, pos);
-    byClient.push({
-      Cliente:cli, PISO:info.piso||'—', Posiciones:pos,
-      pico_max:v.maxP, occ_avg:+(v.sum/v.cnt).toFixed(1), dias:v.dias.size,
-      usadas_peak:usedPk, libres_peak: pos-usedPk
-    });
+    const info=asigMap[cli]||{};
+    const pos=info.pos||0;
+    const usedPk=Math.min(peakCli[cli]||0, pos);
+    byClient.push({Cliente:cli,PISO:info.piso||'-',Posiciones:pos,
+      pico_max:v.maxP,occ_avg:+(v.sum/v.cnt).toFixed(1),dias:v.dias.size,
+      usadas_peak:usedPk,libres_peak:pos-usedPk});
   }
   byClient.sort((a,b)=>b.Posiciones-a.Posiciones);
-  const over100 = byClient.filter(c=>c.occ_avg>100).length;
 
-  return { daily, lab, finde, labAvg, labMax, labMaxF,
-           findeAvg, totalUsed, totalFree, totalPos,
-           pisoStats, byClient, over100, peakDate, peakCli };
+  return {daily,lab,finde,labAvg,labMax,labMaxF,findeAvg,
+          totalUsed,totalFree,totalPos,pisoStats,byClient,
+          over100:byClient.filter(c=>c.occ_avg>100).length,
+          peakCli,asigMap};
 }
 
-// ── Render ─────────────────────────────────────────────────────────────────────
+// ── Render all ────────────────────────────────────────────────────────────────
 function renderAll(){
-  const C = computeFiltered();
-  updatePeriodInfo(C);
-  renderKPIs(C);
-  renderDaily(C);
-  renderClients(C);
-  renderMap(C);
-}
-
-function updatePeriodInfo(C){
-  const txt = C.daily.length
-    ? `${C.daily[0].Fecha} — ${C.daily[C.daily.length-1].Fecha} · ${C.lab.length} días laborales`
-    : 'Sin datos en el período';
-  document.getElementById('period-info').innerHTML = `<strong>${C.daily.length}</strong> días`;
-  document.getElementById('kpi-per').textContent = txt;
-  document.getElementById('sf-per').textContent = `${dateFrom} — ${dateTo}`;
+  const C=compute();
+  // Period info
+  document.getElementById('period-info').innerHTML=C.daily.length?`<strong>${C.daily.length}</strong> dias`:'Sin datos';
+  document.getElementById('kpi-per').textContent=C.daily.length?`${C.daily[0].Fecha} - ${C.daily[C.daily.length-1].Fecha}`:'';
+  document.getElementById('sf-per').textContent=`${dateFrom} - ${dateTo}`;
+  renderKPIs(C); renderDaily(C); renderClients(C); renderMapSection(C);
 }
 
 function renderKPIs(C){
-  const set = (id,v)=>document.getElementById(id).textContent=v;
-  set('k-pos',  fmt(C.totalPos));
-  set('k-occ',  C.labAvg+'%');   document.getElementById('k-occ').style.color=oc(C.labAvg);
-  set('k-max',  C.labMax+'%');   document.getElementById('k-max').style.color=oc(C.labMax);
-  set('k-mf',   C.labMaxF);
-  set('k-over', C.over100);      document.getElementById('k-over').style.color=C.over100>0?'#e05252':'#22c98a';
-  set('k-free', fmt(C.totalFree)); document.getElementById('k-free').style.color='#4a9eff';
-  set('k-used', fmt(C.totalUsed)); document.getElementById('k-used').style.color='#22c98a';
-  set('k-free-s', C.labMaxF!=='—'?`día pico: ${C.labMaxF}`:'—');
-  set('k-used-s', C.labMaxF!=='—'?`de ${fmt(C.totalPos)} posiciones`:'—');
+  const set=(id,v)=>{document.getElementById(id).textContent=v;};
+  set('k-pos', fmt(C.totalPos));
+  set('k-occ', C.labAvg+'%'); document.getElementById('k-occ').style.color=oc(C.labAvg);
+  set('k-max', C.labMax+'%'); document.getElementById('k-max').style.color=oc(C.labMax);
+  set('k-mf',  C.labMaxF);
+  set('k-over',C.over100);    document.getElementById('k-over').style.color=C.over100>0?'#e05252':'#22c98a';
+  set('k-free',fmt(C.totalFree)); document.getElementById('k-free').style.color='#4a9eff';
+  set('k-used',fmt(C.totalUsed)); document.getElementById('k-used').style.color='#22c98a';
+  set('k-free-s',C.labMaxF!=='-'?`dia pico: ${C.labMaxF}`:'-');
+  set('k-used-s',C.labMaxF!=='-'?`de ${fmt(C.totalPos)} posiciones`:'-');
   set('k-dias', C.lab.length);
-  set('k-finde', C.findeAvg+'%');
+  set('k-finde',C.findeAvg+'%');
 
-  // Free bar per piso
-  const rows = document.getElementById('piso-rows');
-  rows.innerHTML = '';
-  const pisos = Object.entries(C.pisoStats).sort((a,b)=>b[1].total-a[1].total);
-  document.getElementById('free-summary').innerHTML =
-    `<strong>${fmt(C.totalFree)}</strong> libres de <strong>${fmt(C.totalPos)}</strong>`;
-  pisos.forEach(([piso,st])=>{
-    const usedPct = st.total>0 ? st.used/st.total*100 : 0;
-    const free    = st.total - st.used;
-    rows.innerHTML += `
-      <div class="prow">
-        <span class="pname">${piso}</span>
-        <div class="btrack"><div class="bfill" style="width:${usedPct.toFixed(1)}%;background:${oc(usedPct)}99"></div></div>
-        <span class="pnums"><span class="used">${st.used}</span> / ${st.total} · <span class="free">${free} lib.</span></span>
-      </div>`;
+  // Piso free bar
+  const rows=document.getElementById('piso-rows'); rows.innerHTML='';
+  document.getElementById('free-summary').innerHTML=
+    `<strong>${fmt(C.totalFree)}</strong> libres de <strong>${fmt(C.totalPos)}</strong> posiciones`;
+  const pisos=Object.entries(C.pisoStats).sort((a,b)=>b[1].total-a[1].total);
+  pisos.forEach(([p,st])=>{
+    const pct=st.total>0?(st.used/st.total*100):0;
+    const free=st.total-st.used;
+    rows.innerHTML+=`<div class="prow">
+      <span class="pname">${p}</span>
+      <div class="btrack"><div class="bfill" style="width:${pct.toFixed(1)}%;background:${oc(pct)}99"></div></div>
+      <span class="pnums"><span class="u">${st.used}</span>/${st.total} · <span class="f">${free} lib.</span></span>
+    </div>`;
   });
 
-  // Compare chart
-  if(charts.cmp) charts.cmp.destroy();
-  charts.cmp = new Chart(document.getElementById('ch-cmp'),{type:'bar',
-    data:{labels:['Días laborales','Fin de semana'],
-      datasets:[{data:[C.labAvg,C.findeAvg],backgroundColor:['rgba(34,201,138,.3)','rgba(74,158,255,.3)'],borderColor:['#22c98a','#4a9eff'],borderWidth:1.5,borderRadius:5}]},
+  if(charts.cmp)charts.cmp.destroy();
+  charts.cmp=new Chart(document.getElementById('ch-cmp'),{type:'bar',
+    data:{labels:['Dias laborales','Fin de semana'],datasets:[{data:[C.labAvg,C.findeAvg],
+      backgroundColor:['rgba(34,201,138,.3)','rgba(74,158,255,.3)'],
+      borderColor:['#22c98a','#4a9eff'],borderWidth:1.5,borderRadius:5}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
       scales:{x:{ticks:{color:'#666',font:{size:11}}},y:{max:100,ticks:{callback:v=>v+'%',color:'#666',font:{size:11}},grid:{color:'rgba(255,255,255,.05)'}}}}});
 
-  // Piso chart
-  const pl=pisos.map(([p])=>p), pa=pisos.map(([,s])=>s.total>0?+(s.used/s.total*100).toFixed(1):0);
-  const pfree=pisos.map(([,s])=>s.total-s.used);
-  if(charts.piso) charts.piso.destroy();
-  charts.piso = new Chart(document.getElementById('ch-piso'),{type:'bar',
+  if(charts.piso)charts.piso.destroy();
+  const pl=pisos.map(([p])=>p);
+  charts.piso=new Chart(document.getElementById('ch-piso'),{type:'bar',
     data:{labels:pl,datasets:[
-      {label:'Usadas',data:pa.map((v,i)=>pisos[i][1].used),backgroundColor:'rgba(34,201,138,.35)',borderColor:'#22c98a',borderWidth:1.5,borderRadius:3,stack:'s'},
-      {label:'Libres',data:pfree,backgroundColor:'rgba(74,158,255,.2)',borderColor:'rgba(74,158,255,.4)',borderWidth:1,borderRadius:3,stack:'s'}
+      {label:'Usadas',data:pisos.map(([,s])=>s.used),backgroundColor:'rgba(34,201,138,.35)',borderColor:'#22c98a',borderWidth:1.5,borderRadius:3,stack:'s'},
+      {label:'Libres', data:pisos.map(([,s])=>s.total-s.used),backgroundColor:'rgba(74,158,255,.2)',borderColor:'rgba(74,158,255,.4)',borderWidth:1,borderRadius:3,stack:'s'}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y}`}}},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#888',font:{size:11},boxWidth:10,padding:8}}},
       scales:{x:{ticks:{color:'#666',font:{size:11}},grid:{display:false}},y:{stacked:true,ticks:{color:'#666',font:{size:11}},grid:{color:'rgba(255,255,255,.05)'}}}}});
 }
 
 function renderDaily(C){
-  const data = dailyFilt==='weekday'?C.lab:dailyFilt==='weekend'?C.finde:C.daily;
-  if(!data.length){
-    if(charts.daily) charts.daily.destroy();
-    document.getElementById('ch-daily').parentElement.innerHTML='<div class="no-data">Sin datos en el período seleccionado</div>';
-    return;
-  }
+  const data=dailyFilt==='weekday'?C.lab:dailyFilt==='weekend'?C.finde:C.daily;
+  if(!data.length){ if(charts.daily)charts.daily.destroy(); return; }
   const labels=data.map(d=>d.Fecha.slice(5)), occs=data.map(d=>d.occ_pct);
-  if(charts.daily) charts.daily.destroy();
-  charts.daily = new Chart(document.getElementById('ch-daily'),{type:'bar',
+  if(charts.daily)charts.daily.destroy();
+  charts.daily=new Chart(document.getElementById('ch-daily'),{type:'bar',
     data:{labels,datasets:[
       {label:'% occ',data:occs,backgroundColor:occs.map(v=>oc(v)+'55'),borderColor:occs.map(v=>oc(v)),borderWidth:1,borderRadius:3,yAxisID:'y'},
-      {label:'Agentes',data:data.map(d=>d.pico_total),type:'line',borderColor:'rgba(74,158,255,.6)',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,yAxisID:'y2'}
+      {label:'Agentes presenciales',data:data.map(d=>d.pico_total),type:'line',borderColor:'rgba(74,158,255,.6)',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,yAxisID:'y2'}
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
       scales:{x:{ticks:{autoSkip:true,maxRotation:45,color:'#666',font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
@@ -424,15 +379,16 @@ function renderDaily(C){
 }
 
 function renderClients(C){
-  const over=C.byClient.filter(c=>c.occ_avg>100), al=document.getElementById('al-over');
-  al.style.display = over.length?'block':'none';
-  if(over.length) al.textContent='⚠ '+over.length+' clientes superan el 100%: '+over.map(c=>c.Cliente).join(', ');
+  const al=document.getElementById('al-over');
+  const over=C.byClient.filter(c=>c.occ_avg>100);
+  al.style.display=over.length?'block':'none';
+  if(over.length) al.textContent='Advertencia: '+over.length+' clientes superan el 100%: '+over.map(c=>c.Cliente).join(', ');
 
+  if(charts.cli)charts.cli.destroy();
+  if(!C.byClient.length) return;
   const top=C.byClient.slice(0,16);
-  if(charts.cli) charts.cli.destroy();
-  if(!top.length){ return; }
-  charts.cli = new Chart(document.getElementById('ch-cli'),{type:'bar',
-    data:{labels:top.map(c=>c.Cliente.length>18?c.Cliente.slice(0,17)+'…':c.Cliente),
+  charts.cli=new Chart(document.getElementById('ch-cli'),{type:'bar',
+    data:{labels:top.map(c=>c.Cliente.length>18?c.Cliente.slice(0,17)+'...':c.Cliente),
       datasets:[{data:top.map(c=>c.occ_avg),backgroundColor:top.map(c=>oc(c.occ_avg)+'55'),borderColor:top.map(c=>oc(c.occ_avg)),borderWidth:1,borderRadius:3}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
       scales:{x:{ticks:{callback:v=>v+'%',color:'#666',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'#aaa',font:{size:11}},grid:{display:false}}}}});
@@ -440,8 +396,8 @@ function renderClients(C){
   document.getElementById('tbl-cli').innerHTML=
     `<thead><tr>
       <th>Cliente</th><th>Piso</th><th>Posiciones</th>
-      <th>Pico máx.</th><th>Occ. promedio</th>
-      <th>Usadas (día pico)</th><th>Libres (día pico)</th><th>Días</th>
+      <th>Pico max.</th><th>Occ. promedio</th>
+      <th>Usadas dia pico</th><th>Libres dia pico</th><th>Dias</th>
     </tr></thead>
     <tbody>${C.byClient.map(c=>`<tr>
       <td style="font-weight:500">${c.Cliente}</td>
@@ -455,11 +411,13 @@ function renderClients(C){
     </tr>`).join('')}</tbody>`;
 }
 
-function renderMap(C){
-  document.getElementById('map-subtitle').textContent =
-    C.peakDate!=='—' ? `Día pico del período: ${C.peakDate} (${C.labMax}% ocupación)` : 'Sin días laborales en el período';
+// ── MAP — simplified 2-color ─────────────────────────────────────────────────
+function renderMapSection(C){
+  document.getElementById('map-sub').textContent=
+    C.labMaxF!=='-'
+      ? `Dia pico: ${C.labMaxF} (${C.labMax}% ocupacion) — presencial unicamente`
+      : 'Sin dias laborales en el periodo';
 
-  // Build tabs
   const tabs=document.getElementById('ftabs'); tabs.innerHTML='';
   FLOORS.forEach((f,i)=>{
     const btn=document.createElement('button');
@@ -468,109 +426,92 @@ function renderMap(C){
     btn.onclick=()=>{ curFloor=i; document.querySelectorAll('.ftab').forEach((b,j)=>b.classList.toggle('active',j===i)); drawMap(i,C); };
     tabs.appendChild(btn);
   });
-  drawMap(curFloor, C);
+  drawMap(curFloor,C);
 }
 
 function drawMap(fi, C){
-  const f   = FLOORS[fi];
-  const occ = {};
-  C.byClient.forEach(c=>{ occ[c.Cliente]=c.occ_avg; });
+  const f=FLOORS[fi];
 
-  // Which clients have used positions on peak day for THIS floor
-  const usedClients = new Set(
-    f.cells.map(x=>x.cl).filter(cl => C.peakCli[cl] && C.peakCli[cl]>0)
-  );
+  // Total posiciones asignadas al piso (suma de todos los clientes del piso)
+  const pisoKey = f.name === '1' ? '1 ' : f.name === '3' ? '3 ' : f.name === '4' ? '4 ' : f.name;
 
-  const lk={};
-  f.cells.forEach(x=>{ lk[x.r+'_'+x.c]=x.cl; });
+  // Count total cells in this floor map = total positions shown
+  const totalCells = f.cells.length;
+
+  // Usadas en dia pico para este piso — from pisoStats which already caps at assigned
+  const st = C.pisoStats[pisoKey] || C.pisoStats[f.name] ||
+    // fallback: find by partial match
+    Object.entries(C.pisoStats).find(([k])=>k.trim()===f.name.trim())?.[1] ||
+    {used:0, total:totalCells};
+
+  const usedCount = st.used;
+  const totalCount = st.total;
+  const freeCount  = totalCount - usedCount;
+  const occPct     = totalCount>0 ? (usedCount/totalCount*100).toFixed(1) : 0;
+
+  // Build grid — fill used cells from top-left, rest are free
+  // (simple approach: first N cells = used, rest = free)
+  const usedSet = new Set();
+  for(let i=0;i<Math.min(usedCount, f.cells.length);i++) usedSet.add(i);
+
+  const lk = new Map();
+  f.cells.forEach((x,i)=>{ lk.set(x.r+'_'+x.c, i); });
+
   const maxR=Math.max(...f.cells.map(x=>x.r));
   const maxC=Math.max(...f.cells.map(x=>x.c));
   const CS=10,G=2,W=(maxC+1)*(CS+G)+G,H=(maxR+1)*(CS+G)+G;
 
   let rects='';
   for(let r=0;r<=maxR;r++) for(let c=0;c<=maxC;c++){
-    const cl=lk[r+'_'+c];
+    const idx=lk.get(r+'_'+c);
     const x=G+c*(CS+G), y=G+r*(CS+G);
-    if(cl){
-      const isUsed = usedClients.has(cl);
-      if(isUsed){
-        const col=f.clients[cl]||'#555';
-        rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1.5" fill="${col}" fill-opacity="0.85"><title>${cl}: ${occ[cl]||'?'}% occ · ${C.peakCli[cl]||0} ag. en pico</title></rect>`;
+    if(idx!==undefined){
+      if(usedSet.has(idx)){
+        rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1.5" fill="#4a9eff" fill-opacity="0.85"/>`;
       } else {
-        // Assigned but unused on peak day — show as empty with faint border
-        rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1.5" fill="#0f0f10" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"><title>${cl}: libre en día pico</title></rect>`;
+        rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1.5" fill="#1a1a1d" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>`;
       }
     } else {
       rects+=`<rect x="${x}" y="${y}" width="${CS}" height="${CS}" rx="1" fill="#0a0a0b"/>`;
     }
   }
 
-  // Floor stats
-  const floorClients = [...new Set(f.cells.map(x=>x.cl))];
-  const floorTotal   = floorClients.reduce((s,cl)=>s+(RAW.meta.asigMap[cl]?.pos||0),0);
-  const floorUsed    = floorClients.reduce((s,cl)=>s+Math.min(C.peakCli[cl]||0, RAW.meta.asigMap[cl]?.pos||0),0);
-  const floorFree    = floorTotal - floorUsed;
-  const floorOcc     = floorTotal>0 ? (floorUsed/floorTotal*100).toFixed(0) : 0;
-
   document.getElementById('finfo').innerHTML=
-    `<strong style="color:#f0ede8">Piso ${f.name}</strong>
-     <span>${floorTotal} posiciones</span>
-     <span style="color:#22c98a">${floorUsed} usadas</span>
-     <span style="color:#4a9eff">${floorFree} libres</span>
-     <span style="color:${oc(+floorOcc)};font-weight:500">${floorOcc}% ocupación</span>`;
+    `<strong>Piso ${f.name}</strong>
+     <span style="color:#888">${totalCount} posiciones asignadas</span>
+     <span style="color:#22c98a;font-weight:500">${usedCount} usadas</span>
+     <span style="color:#4a9eff;font-weight:500">${freeCount} libres</span>
+     <span style="color:${oc(+occPct)};font-weight:500">${occPct}% ocupacion</span>`;
 
   document.getElementById('mwrap').innerHTML=
     `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="display:block">${rects}</svg>`;
-
-  // Legend: only clients with used positions on this floor
-  document.getElementById('fleg').innerHTML=
-    floorClients.filter(cl=>usedClients.has(cl)).map(cl=>{
-      const col=f.clients[cl]||'#555';
-      const v=occ[cl]||0;
-      return `<span class="fli"><span class="fdot" style="background:${col}"></span>${cl}<span style="color:${oc(v)};font-weight:500;font-family:'DM Mono',monospace;margin-left:4px">${v}%</span></span>`;
-    }).join('') +
-    (floorFree>0?`<span class="fli" style="opacity:.5"><span class="fdot" style="background:#1a1a1d;border:1px solid rgba(255,255,255,.15)"></span>Libres: ${floorFree}</span>`:'');
 }
 
-// ── Navigation ────────────────────────────────────────────────────────────────
+// ── Nav / filter ──────────────────────────────────────────────────────────────
 function nav(id,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('sec-'+id).classList.add('active');
-  el.classList.add('active');
+  document.getElementById('sec-'+id).classList.add('active'); el.classList.add('active');
 }
-
 function setDF(f,btn){
   dailyFilt=f;
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderDaily(computeFiltered());
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  renderDaily(compute());
 }
-
-// ── Period controls ───────────────────────────────────────────────────────────
 function onDateChange(){
-  dateFrom = document.getElementById('date-from').value;
-  dateTo   = document.getElementById('date-to').value;
+  dateFrom=document.getElementById('date-from').value;
+  dateTo  =document.getElementById('date-to').value;
   document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));
   renderAll();
 }
-
-function setPreset(p){
-  const dates = RAW.daily.map(d=>d.Fecha).sort();
-  const last  = dates[dates.length-1];
-  const first = dates[0];
+function setPreset(p,btn){
+  const dates=RAW.daily.map(d=>d.Fecha).sort();
+  const last=dates[dates.length-1], first=dates[0];
   document.querySelectorAll('.preset').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
-  if(p==='all'){ dateFrom=first; dateTo=last; }
-  else if(p==='month'){
-    const d=new Date(last+'T12:00:00');
-    d.setMonth(d.getMonth()-1);
-    dateFrom=d.toISOString().slice(0,10); dateTo=last;
-  } else if(p==='week'){
-    const d=new Date(last+'T12:00:00');
-    d.setDate(d.getDate()-7);
-    dateFrom=d.toISOString().slice(0,10); dateTo=last;
-  }
+  btn.classList.add('active');
+  if(p==='all'){dateFrom=first;dateTo=last;}
+  else if(p==='month'){const d=new Date(last+'T12:00:00');d.setMonth(d.getMonth()-1);dateFrom=d.toISOString().slice(0,10);dateTo=last;}
+  else if(p==='week'){const d=new Date(last+'T12:00:00');d.setDate(d.getDate()-7);dateFrom=d.toISOString().slice(0,10);dateTo=last;}
   document.getElementById('date-from').value=dateFrom;
   document.getElementById('date-to').value=dateTo;
   renderAll();
@@ -582,7 +523,6 @@ async function init(){
     const res=await fetch('data.json');
     if(!res.ok) throw new Error('No se pudo cargar data.json');
     RAW=await res.json();
-
     const dates=RAW.daily.map(d=>d.Fecha).sort();
     dateFrom=dates[0]; dateTo=dates[dates.length-1];
     document.getElementById('date-from').value=dateFrom;
@@ -592,12 +532,11 @@ async function init(){
     document.getElementById('date-to').min=dates[0];
     document.getElementById('date-to').max=dates[dates.length-1];
     document.getElementById('sf-upd').textContent='Actualizado: '+RAW.meta.updated;
-
     document.getElementById('loading').style.display='none';
     document.getElementById('shell').style.display='grid';
     renderAll();
   }catch(e){
-    document.getElementById('loading').innerHTML=`<div style="color:#e05252">❌ Error: ${e.message}</div>`;
+    document.getElementById('loading').innerHTML=`<div style="color:#e05252">Error: ${e.message}</div>`;
   }
 }
 init();
