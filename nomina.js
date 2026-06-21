@@ -1,0 +1,25 @@
+const RAW_NOMINA = [
+  {"servicio": "PERSONAL 4 - VENTAS - VENTAS IN/OUT", "teletrabajo": 13, "presencial": 77},
+  {"servicio": "PERSONAL 3 - RETENCIÓN - RETENCION CABLE", "teletrabajo": 19, "presencial": 30},
+  {"servicio": "PERSONAL 3 - RETENCION CONVERGENTE - RETENCIÓN CONVERGENTE", "teletrabajo": 43, "presencial": 69},
+  {"servicio": "PERSONAL 4 - CUSTOMER - ABONOS", "teletrabajo": 11, "presencial": 33},
+  {"servicio": "PERSONAL 4 - CUSTOMER - ISLA DEGRADADOS", "teletrabajo": 12, "presencial": 18},
+  {"servicio": "PERSONAL 4 - CUSTOMER - CONVERGENTE FACTURA UNIFICADA", "teletrabajo": 33, "presencial": 51},
+  {"servicio": "PERSONAL 4 - CUSTOMER - ONBOARDING CUSTOMER", "teletrabajo": 10, "presencial": 8},
+  {"servicio": "PERSONAL 4 - CUSTOMER - ISLA OPEN - CUSTOMER - ISLA OPEN", "teletrabajo": 8, "presencial": 11},
+  {"servicio": "PERSONAL 3 - SOPORTE TECNICO - ISLA ESPECIALIZADA MOVIL", "teletrabajo": 6, "presencial": 16},
+  {"servicio": "PERSONAL 3 - SOPORTE ISLA ENTRETENIMIENTO - SOPORTE ISLA ENTRETENIMIENTO", "teletrabajo": 2, "presencial": 36},
+  {"servicio": "PERSONAL 3 - SOPORTE CONECTIVIDAD - SOPORTE CONECTIVIDAD", "teletrabajo": 14, "presencial": 68},
+  {"servicio": "PERSONAL 3 - SOPORTE TECNICO - SOPORTE TECNICO - PROVISION AUTOINSTALABLE", "teletrabajo": 1, "presencial": 27},
+  {"servicio": "PERSONAL 3 - SOPORTE TECNICO - CALLBACK/PTF", "teletrabajo": 11, "presencial": 1},
+  {"servicio": "PERSONAL 3 - SMB - INBOUND - SMB - INBOUND", "teletrabajo": 1, "presencial": 12},
+  {"servicio": "PERSONAL 3 - SMB - OUT IND - SMB - OUT IND", "teletrabajo": 6, "presencial": 9},
+  {"servicio": "PERSONAL 3 - REDES SOCIALES SOPORTE - REDES SOCIALES SOPORTE", "teletrabajo": 23, "presencial": 61},
+  {"servicio": "PERSONAL 4 - VENTAS - VENTAS WHATSAPP HOGAR", "teletrabajo": 17, "presencial": 59},
+  {"servicio": "PERSONAL 4 - CUSTOMER - WS FACTURA UNIFICADA", "teletrabajo": 32, "presencial": 22},
+  {"servicio": "PERSONAL 3 - RETENCIÓN CONVERGENTE DIGITAL - RETENCIÓN CONVERGENTE DIGITAL", "teletrabajo": 25, "presencial": 28},
+  {"servicio": "PERSONAL 4 - CUSTOMER - PPAY DIGITAL", "teletrabajo": 22, "presencial": 54},
+  {"servicio": "PERSONAL 4 - CUSTOMER - WS MOROSIDAD", "teletrabajo": 5, "presencial": 9},
+  {"servicio": "PERSONAL 3 - SMB - INBOUND DIGITAL - SMB - INBOUND DIGITAL", "teletrabajo": 1, "presencial": 14}
+];
+

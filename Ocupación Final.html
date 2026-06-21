@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+    <title>Dashboard de Ocupación Histórica</title>
+    <!-- Librería principal de Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Plugin para mostrar etiquetas dentro de los gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        /* PALETA DE COLORES WEB CORPORATIVA */
+        :root { 
+            --bg: #f0f2f5; 
+            --card: #ffffff; 
+            --border: #e2e8f0; 
+            --text-main: #1e293b; 
+            --text-muted: #64748b;
+            --blue: #2563eb; 
+            --blue-hover: #1d4ed8;
+            --red: #ef4444; 
+            --green: #10b981; 
+            --tab-inactive-bg: #e2e8f0;
+            --tab-inactive-text: #475569;
+            --header-bg: #ffffff;
+        }
+        
+        /* TIPOGRAFÍA Y CUERPO */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg); 
+            padding: 0; 
+            margin: 0; 
+            color: var(--text-main); 
+            font-size: 14px;
+        }
+        
+        /* HEADER CON LOGO */
+        .header-container { 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-start; 
+            background: var(--header-bg); 
+            padding: 12px 30px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            margin: 0 0 20px 0; 
+            border-bottom: 1px solid var(--border); 
+        }
+        .header-logo { height: 40px; margin-right: 15px; object-fit: contain; }
+        .header-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0; letter-spacing: -0.3px;}
+
+        .dashboard-wrapper { padding: 0 30px 30px 30px; max-width: 1600px; margin: 0 auto;}
+
+        /* FILTROS GLOBALES */
+        .filter-panel { 
+            background: var(--card); 
+            padding: 12px 20px; 
+            border-radius: 6px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 20px; 
+            flex-wrap: wrap; 
+        }
+        .filter-item { display: flex; align-items: center; gap: 8px; margin: 0; }
+        .filter-item label { margin-bottom: 0; font-weight: 600; color: var(--text-muted); font-size: 0.9rem;}
+        .filter-panel input[type="date"], .filter-panel select, .filter-item select { 
+            padding: 6px 12px; 
+            border-radius: 4px; 
+            border: 1px solid #cbd5e1; 
+            font-size: 0.9rem; 
+            color: var(--text-main); 
+            outline: none; 
+            cursor: pointer; 
+            transition: border-color 0.2s; 
+            background-color: #f8fafc;
+        }
+        .filter-panel input[type="date"]:focus, .filter-panel select:focus, .filter-item select:focus { border-color: var(--blue); background-color: #fff;}
+        
+        /* SOLAPAS (TABS) EN LA MISMA LÍNEA Y POR COLOR */
+        .tab-container { 
+            margin-bottom: 20px; 
+            display: flex; 
+            gap: 2px; 
+            flex-wrap: nowrap; 
+            overflow-x: auto;  
+            border-bottom: 3px solid var(--blue);
+            scrollbar-width: none; 
+        }
+        .tab-container::-webkit-scrollbar { display: none; } 
+        
+        .tab-btn { 
+            background: var(--tab-inactive-bg); 
+            border: none; 
+            padding: 10px 20px; 
+            font-size: 0.95rem; 
+            cursor: pointer; 
+            border-radius: 6px 6px 0 0; 
+            color: var(--tab-inactive-text); 
+            font-weight: 600; 
+            transition: all 0.2s ease; 
+            white-space: nowrap; 
+        }
+        .tab-btn:hover { background-color: #cbd5e1; color: var(--text-main); }
+        .tab-btn.active { 
+            background: var(--blue); 
+            color: #ffffff; 
+        }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ESTRUCTURA DE GRILLAS Y TARJETAS */
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3-col { grid-template-columns: 2fr 1fr; } 
+        
+        .card { 
+            background: var(--card); 
+            padding: 20px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            margin-bottom: 20px; 
+        }
+        h2 { 
+            margin-top: 0; 
+            font-size: 1.05rem; 
+            border-bottom: 1px solid var(--border); 
+            padding-bottom: 10px; 
+            color: var(--text-main); 
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ESTILOS ESPECÍFICOS PARA LA GUÍA (ÍNDICE) */
+        .guia-section { margin-bottom: 25px; line-height: 1.6; color: #334155; }
+        .guia-section h3 { color: var(--blue); margin-bottom: 10px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;}
+        .guia-section ul { padding-left: 20px; margin-top: 5px;}
+        .guia-section li { margin-bottom: 8px; }
+        .formula-box { background: #f8fafc; border-left: 4px solid var(--blue); padding: 10px 15px; border-radius: 0 4px 4px 0; font-family: monospace; font-size: 13px; color: #0f172a; margin-top: 5px; margin-bottom: 15px;}
+        
+        .chart-container { position: relative; height: 350px; width: 100%; }
+
+        /* ESTILOS DE PLANOS ARQUITECTÓNICOS */
+        .mapa-container { margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 6px; border: 1px solid var(--border); overflow-x: auto; width: 100%; box-sizing: border-box; }
+        
+        .mapa-grid-generico { display: flex; flex-wrap: wrap; gap: 4px; }
+        .seat-generic { width: 20px; height: 20px; border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: transform 0.1s; border: 1px solid rgba(0,0,0,0.05);}
+        .seat-generic.free { background-color: var(--green); }
+        .seat-generic.occupied { background-color: var(--red); }
+        
+        .mapa-grid-arquitectura { display: grid; gap: 2px; width: 100%; }
+        .layout-cell { display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 3px; box-sizing: border-box; width: 100%; height: 100%; min-height: 18px; position: relative; }
+        
+        .layout-seat { border: 1px solid rgba(0,0,0,0.1); font-weight: 600; cursor: help; color: #fff; font-size: clamp(5px, 0.7vw, 10px); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 1px;}
+        .layout-seat.free { background-color: var(--green); }
+        .layout-seat.occupied { background-color: var(--red); box-shadow: inset 0 0 4px rgba(0,0,0,0.2);}
+        
+        .layout-label { 
+            font-size: clamp(8px, 0.85vw, 12px); 
+            color: var(--blue); 
+            font-weight: 700; 
+            background: rgba(255, 255, 255, 0.95); 
+            border: 1px solid rgba(37, 99, 235, 0.2); 
+            border-radius: 3px;
+            padding: 2px 6px;
+            white-space: nowrap; 
+            position: absolute; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); 
+            z-index: 10; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            pointer-events: none; 
+        }
+        
+        .layout-empty { background: transparent; }
+
+        .legend-box { display: flex; gap: 15px; align-items: center; margin-top: 10px; font-weight: 600; flex-wrap: wrap; color: var(--text-muted); font-size: 0.9rem;}
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 3px; }
+        .bg-green { background-color: var(--green); }
+        .bg-red { background-color: var(--red); }
+
+        @media (max-width: 1000px) { .grid-container, .grid-3-col { grid-template-columns: 1fr; } }
+    </style>
+    
+    <!-- Scripts generados por la Macro -->
+    <script src="franjas.js"></script>
+    <script src="picos.js"></script>
+    <script src="capacidad.js"></script>
+    <script src="nomina.js"></script>
+    <script src="planos.js"></script>
+</head>
+<body>
+
+    <!-- CABECERA PROFESIONAL CON LOGO -->
+    <div class="header-container">
+        <img src="logo.png" alt="Logo Empresa" class="header-logo" onerror="this.style.display='none'">
+        <h1 class="header-title">Visor de Ocupación Histórica</h1>
+    </div>
+
+    <div class="dashboard-wrapper">
+        <!-- FILTROS GLOBALES -->
+        <div class="filter-panel">
+            <div class="filter-item">
+                <label for="fechaDesde">Desde:</label>
+                <input type="date" id="fechaDesde">
+            </div>
+            <div class="filter-item">
+                <label for="fechaHasta">Hasta:</label>
+                <input type="date" id="fechaHasta">
+            </div>
+        </div>
+
+        <!-- NAVEGACIÓN DE SOLAPAS CON EMOJIS -->
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="cambiarSolapa('guia')">📖 Guía y Fórmulas</button>
+            <button class="tab-btn" onclick="cambiarSolapa('general')">🏢 Vista General (Física)</button>
+            <button class="tab-btn" onclick="cambiarSolapa('detalle')">📍 Detalle por Piso/Edificio</button>
+            <button class="tab-btn" onclick="cambiarSolapa('nomina')">👥 Distribución Modalidad (Nómina)</button>
+            <button class="tab-btn" onclick="cambiarSolapa('mapeo')">🗺️ Mapeo Físico de Posiciones</button>
+        </div>
+
+        <!-- SOLAPA 0: GUÍA DE USO (ÍNDICE) -->
+        <div id="guia" class="tab-content active">
+            <div class="card">
+                <h2>¿Qué muestra este reporte?</h2>
+                <div class="guia-section">
+                    <p>Este tablero es una herramienta analítica diseñada para medir la concurrencia real y la ocupación de las posiciones de trabajo dentro de la empresa. Utiliza como fuente el logueo histórico cruzado con la nómina de presencialidad y el mapeo arquitectónico (Layouts).</p>
+                </div>
+                
+                <h2>Detalle de Solapas y Fórmulas</h2>
+                
+                <div class="guia-section">
+                    <h3>🏢 1. Vista General (Física Acumulada)</h3>
+                    <p>Brinda un panorama del uso de la infraestructura edilicia en su totalidad. <b>Excluye a los agentes en modalidad Teletrabajo</b> para no distorsionar la capacidad real de los edificios.</p>
+                    <ul>
+                        <li><b>Max Ocupación x Franja:</b> Evalúa en bloques de 30 minutos cuántas personas físicas se encuentran conectadas en simultáneo. Identifica el momento exacto del día con el récord de concurrencia.</li>
+                        <li><b>Capacidad Física Requerida:</b> Calcula cuántas posiciones físicas se necesitarían si todas las campañas operaran a su capacidad máxima al mismo tiempo.
+                            <div class="formula-box">Fórmula = Sumatoria (Pico Máximo Histórico del Servicio A + Pico Máximo Histórico del Servicio B + ...)</div>
+                        </li>
+                        <li><b>% Ocupación Total (Velocímetro):</b> Indica el nivel de estrés de la infraestructura.
+                            <div class="formula-box">Fórmula = (Capacidad Física Requerida / Cantidad Total de Posiciones Físicas de la Empresa) * 100</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="guia-section">
+                    <h3>📍 2. Detalle por Piso/Edificio</h3>
+                    <p>Permite auditar el comportamiento de un área o locación física en particular. Se selecciona el piso desde el filtro superior.</p>
+                    <ul>
+                        <li><b>KPIs Superiores:</b> Reflejan la capacidad instalada vs. el pico real detectado en el período de fechas consultado.
+                            <div class="formula-box">% Uso = (Ocupación Concurrente Máxima del Piso / Capacidad Nominal del Piso) * 100</div>
+                        </li>
+                        <li><b>Campañas que ocupan la locación:</b> Gráfico de distribución (dona) que desglosa qué campañas conforman la ocupación de ese piso en los momentos de mayor volumen.</li>
+                    </ul>
+                </div>
+
+                <div class="guia-section">
+                    <h3>👥 3. Distribución Modalidad (Nómina)</h3>
+                    <p>Mide la presencialidad asignada al personal de acuerdo al reporte base, y aísla el comportamiento de los teletrabajadores.</p>
+                    <ul>
+                        <li><b>% Teletrabajo vs Presencial:</b> Refleja cabezas únicas asignadas a cada modalidad dentro de una campaña específica.</li>
+                        <li><b>Pico de Conexiones Diarias (Teletrabajo):</b> Indica el volumen concurrente de personas trabajando desde su casa día por día. Mide exclusivamente a la población remota.</li>
+                    </ul>
+                </div>
+
+                <div class="guia-section">
+                    <h3>🗺️ 4. Mapeo Físico de Posiciones</h3>
+                    <p>Renderiza dinámicamente los planos arquitectónicos de la empresa. Identifica el instante de mayor ocupación histórica dentro de las fechas filtradas y pinta de rojo el volumen equivalente de posiciones requeridas en dicho piso, dejando en verde las posiciones que hubiesen quedado libres.</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SOLAPA 1: GENERAL (SIN TELETRABAJO) -->
+        <div id="general" class="tab-content">
+            <div class="grid-container grid-3-col">
+                <div class="card">
+                    <h2>Max Ocupación Física x Franja (Concurrente)</h2>
+                    <div class="chart-container"><canvas id="chartFranjas"></canvas></div>
+                </div>
+                <div class="card">
+                    <h2>% Ocupación Total de la Empresa</h2>
+                    <div class="chart-container"><canvas id="chartGaugeOcupacion"></canvas></div>
+                </div>
+            </div>
+            <div class="card" style="margin-top: 0;">
+                <h2>Capacidad Física Requerida por Área (Suma de Picos)</h2>
+                <div class="chart-container" style="height: 300px;"><canvas id="chartPicos"></canvas></div>
+            </div>
+        </div>
+
+        <!-- SOLAPA 2: DETALLE POR LOCACIÓN -->
+        <div id="detalle" class="tab-content">
+            <div class="filter-panel" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                <div class="filter-item">
+                    <label for="selectLocacion">Locación:</label>
+                    <select id="selectLocacion"></select>
+                </div>
+                <!-- CUADRO DE KPIs DINÁMICO -->
+                <div class="filter-item" style="margin-left: auto; display: flex; gap: 20px; background: #fff; padding: 6px 15px; border-radius: 6px; border: 1px solid var(--border);">
+                    <div><span style="color:var(--text-muted); font-size: 0.85rem;">Capacidad:</span> <span id="lblCapacidad" style="color:var(--text-main); font-weight:700;">-</span></div>
+                    <div><span style="color:var(--text-muted); font-size: 0.85rem;">Ocupación:</span> <span id="lblOcupacionVal" style="color:var(--red); font-weight:700;">-</span></div>
+                    <div><span style="color:var(--text-muted); font-size: 0.85rem;">% Uso:</span> <span id="lblPctOcupacion" style="color:var(--blue); font-weight:700;">-</span></div>
+                </div>
+            </div>
+            <div class="grid-container">
+                <div class="card">
+                    <h2>Ocupación x Franja (Solo en esta Locación)</h2>
+                    <div class="chart-container"><canvas id="chartFranjasDetalle"></canvas></div>
+                </div>
+                <div class="card">
+                    <h2>Campañas que ocupan esta Locación (Picos)</h2>
+                    <div class="chart-container"><canvas id="chartPicosDetalle"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SOLAPA 3: NÓMINA Y TENDENCIA DE TELETRABAJO -->
+        <div id="nomina" class="tab-content">
+            <div class="filter-panel" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                <div class="filter-item">
+                    <label for="selectCampanaNomina">Campaña:</label>
+                    <select id="selectCampanaNomina">
+                        <option value="TODOS">TODAS</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card" style="margin-top: 0;">
+                <h2>% Teletrabajo vs Presencial por Servicio (Basado en Nómina OMNIA)</h2>
+                <div class="chart-container" style="height: 400px;"><canvas id="chartNomina"></canvas></div>
+            </div>
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="border: none; margin: 0; padding: 0;">Pico de Conexiones Concurrentes Diarias (TELETRABAJO)</h2>
+                    <div class="filter-item">
+                        <label for="selectCampanaTele" style="font-size: 0.85rem; text-transform: uppercase;">Filtrar:</label>
+                        <select id="selectCampanaTele" style="max-width: 300px; padding: 4px 8px;">
+                            <option value="TODOS">TODAS (Global)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 350px;"><canvas id="chartTeletrabajoDia"></canvas></div>
+            </div>
+        </div>
+
+        <!-- SOLAPA 4: MAPEO FÍSICO -->
+        <div id="mapeo" class="tab-content">
+            <div class="filter-panel" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                <div class="filter-item">
+                    <label for="selectMapEdificio">Edificio:</label>
+                    <select id="selectMapEdificio"></select>
+                </div>
+                <div class="filter-item">
+                    <label for="selectMapPiso">Piso:</label>
+                    <select id="selectMapPiso"></select>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Mapa de Densidad Arquitectónica (Mayor ocupación del período)</h2>
+                <div class="legend-box">
+                    <div class="legend-item"><div class="legend-color bg-green"></div> <span>Libres (<span id="txtLibres">0</span>)</span></div>
+                    <div class="legend-item"><div class="legend-color bg-red"></div> <span>Ocupadas (<span id="txtOcupadas">0</span>)</span></div>
+                    <div style="margin-left: auto; color: var(--text-muted); font-size: 0.85rem;">
+                        Capacidad Layout: <b id="txtTotal" style="color: var(--text-main);">0</b> posiciones <span id="lblAvisoPlano" style="color:var(--red); font-weight: normal;"></span>
+                    </div>
+                </div>
+                <div id="contenedorPlano" class="mapa-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        Chart.defaults.color = "#64748b"; 
+
+        let chartFranjasInstance = null;
+        let chartPicosInstance = null;
+        let chartGaugeOcupacionInstance = null; 
+        let chartFranjasDetalleInstance = null;
+        let chartPicosDetalleInstance = null;
+        let chartNominaInstance = null;
+        let chartTeletrabajoDiaInstance = null; 
+        
+        const colores = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#f97316', '#06b6d4', '#ef4444', '#eab308', '#22c55e', '#0ea5e9', '#d97706', '#dc2626'];
+        let capDict = {};
+        let totalCapacidadFisicaGlobal = 0; 
+        let estructuraEdificios = {}; 
+
+        function getCampana(servicioStr) {
+            let parts = servicioStr.split('-');
+            if (parts.length > 1) return parts[1].trim().toUpperCase();
+            return servicioStr.trim().toUpperCase();
+        }
+
+        function getCampanaSubcampana(servicioStr) {
+            let parts = servicioStr.split('-');
+            if (parts.length >= 3) {
+                return (parts[1].trim() + " - " + parts[2].trim()).toUpperCase();
+            } else if (parts.length === 2) {
+                return servicioStr.trim().toUpperCase();
+            }
+            return servicioStr.trim().toUpperCase();
+        }
+
+        function getNombreServicioLimpio(servicioStr) {
+            let parts = servicioStr.split('-');
+            return parts[parts.length - 1].trim().toUpperCase();
+        }
+
+        function cambiarSolapa(solapaId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(solapaId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            actualizarDashboard(); 
+        }
+
+        if (typeof RAW_FRANJAS === 'undefined' || typeof RAW_PICOS === 'undefined' || typeof RAW_CAPACIDAD === 'undefined') {
+            alert("Error: No se encontraron los archivos principales de datos (.js).");
+        } else {
+            RAW_CAPACIDAD.forEach(c => { 
+                capDict[c.locacion] = c.capacidad; 
+                if (c.locacion !== 'TELETRABAJO' && c.locacion !== 'SIN MAPA') {
+                    totalCapacidadFisicaGlobal += c.capacidad;
+                    let parts = c.locacion.split(' - ');
+                    let edif = parts[0].trim();
+                    let piso = parts.length > 1 ? parts[1].trim() : 'ÚNICO';
+                    
+                    if (!estructuraEdificios[edif]) estructuraEdificios[edif] = [];
+                    if (!estructuraEdificios[edif].includes(piso)) estructuraEdificios[edif].push(piso);
+                }
+            });
+
+            const locacionesSet = new Set(RAW_CAPACIDAD.map(c => c.locacion));
+            const selectLocacion = document.getElementById('selectLocacion');
+            [...locacionesSet].sort().forEach(loc => {
+                let opt = document.createElement('option');
+                opt.value = loc; opt.innerHTML = loc.toUpperCase();
+                selectLocacion.appendChild(opt);
+            });
+
+            const selectMapEdificio = document.getElementById('selectMapEdificio');
+            const selectMapPiso = document.getElementById('selectMapPiso');
+            
+            Object.keys(estructuraEdificios).sort().forEach(edif => {
+                let opt = document.createElement('option');
+                opt.value = edif; opt.innerHTML = edif.toUpperCase();
+                selectMapEdificio.appendChild(opt);
+            });
+
+            selectMapEdificio.addEventListener('change', function() {
+                selectMapPiso.innerHTML = '';
+                let pisos = estructuraEdificios[this.value] || [];
+                pisos.sort().forEach(piso => {
+                    let opt = document.createElement('option');
+                    opt.value = piso; opt.innerHTML = piso.toUpperCase();
+                    selectMapPiso.appendChild(opt);
+                });
+                actualizarDashboard(); 
+            });
+            
+            if (selectMapEdificio.options.length > 0) selectMapEdificio.dispatchEvent(new Event('change'));
+
+            if (typeof RAW_NOMINA !== 'undefined') {
+                const campanasNominaSet = new Set(RAW_NOMINA.map(n => getCampana(n.servicio)));
+                const selectCampanaNomina = document.getElementById('selectCampanaNomina');
+                [...campanasNominaSet].sort().forEach(camp => {
+                    if(camp) {
+                        let opt = document.createElement('option');
+                        opt.value = camp; opt.innerHTML = camp;
+                        selectCampanaNomina.appendChild(opt);
+                    }
+                });
+                selectCampanaNomina.addEventListener('change', actualizarDashboard);
+            }
+
+            if (typeof RAW_PICOS !== 'undefined') {
+                const campanasTeleSet = new Set();
+                RAW_PICOS.forEach(p => { if (p.locacion === 'TELETRABAJO') campanasTeleSet.add(getCampana(p.servicio)); });
+                const selectCampTele = document.getElementById('selectCampanaTele');
+                [...campanasTeleSet].sort().forEach(camp => {
+                    if(camp) {
+                        let opt = document.createElement('option');
+                        opt.value = camp; opt.innerHTML = camp;
+                        selectCampTele.appendChild(opt);
+                    }
+                });
+                selectCampTele.addEventListener('change', actualizarDashboard);
+            }
+
+            const fechasUnicas = [...new Set(RAW_FRANJAS.map(r => r.fecha))].sort();
+            const inputDesde = document.getElementById('fechaDesde');
+            const inputHasta = document.getElementById('fechaHasta');
+
+            if(fechasUnicas.length > 0) {
+                inputDesde.value = fechasUnicas[0];
+                inputHasta.value = fechasUnicas[fechasUnicas.length - 1];
+                inputDesde.min = fechasUnicas[0]; inputDesde.max = fechasUnicas[fechasUnicas.length - 1];
+                inputHasta.min = fechasUnicas[0]; inputHasta.max = fechasUnicas[fechasUnicas.length - 1];
+            }
+
+            inputDesde.addEventListener('change', actualizarDashboard);
+            inputHasta.addEventListener('change', actualizarDashboard);
+            selectLocacion.addEventListener('change', actualizarDashboard);
+            selectMapPiso.addEventListener('change', actualizarDashboard);
+
+            actualizarDashboard();
+        }
+
+        function actualizarDashboard() {
+            let fDesde = document.getElementById('fechaDesde').value;
+            let fHasta = document.getElementById('fechaHasta').value;
+            if(fDesde > fHasta) return; 
+
+            const franjasFiltradas = RAW_FRANJAS.filter(r => r.fecha >= fDesde && r.fecha <= fHasta);
+            const picosFiltrados = RAW_PICOS.filter(r => r.fecha >= fDesde && r.fecha <= fHasta);
+            
+            const solapaActiva = document.querySelector('.tab-content.active').id;
+
+            if (solapaActiva === 'guia') return; 
+
+            if (solapaActiva === 'general') renderizarGeneral(franjasFiltradas, picosFiltrados);
+            else if (solapaActiva === 'detalle') {
+                const loc = document.getElementById('selectLocacion').value;
+                renderizarDetalle(franjasFiltradas, picosFiltrados, loc);
+            } 
+            else if (solapaActiva === 'nomina') renderizarNomina(franjasFiltradas, picosFiltrados);
+            else if (solapaActiva === 'mapeo') renderizarMapeo(franjasFiltradas);
+        }
+
+        function renderizarGeneral(franjasFiltradas, picosFiltrados) {
+            if (chartFranjasInstance) chartFranjasInstance.destroy();
+            if (chartPicosInstance) chartPicosInstance.destroy();
+            if (chartGaugeOcupacionInstance) chartGaugeOcupacionInstance.destroy();
+
+            let maxOcupacionGlobalPeriodo = 0; 
+
+            if(franjasFiltradas.length > 0) {
+                let feclocData = {}; 
+                let locacionesSet = new Set();
+
+                franjasFiltradas.forEach(r => {
+                    if (!feclocData[r.franja]) feclocData[r.franja] = {};
+                    if (!feclocData[r.franja][r.fecha]) feclocData[r.franja][r.fecha] = { _total: 0 };
+                    
+                    Object.keys(r).forEach(k => {
+                        if (k !== 'fecha' && k !== 'franja' && k !== 'TELETRABAJO') {
+                            locacionesSet.add(k);
+                            let val = r[k] || 0;
+                            feclocData[r.franja][r.fecha][k] = val;
+                            feclocData[r.franja][r.fecha]._total += val;
+                        }
+                    });
+                });
+
+                const labelsFranjas = Object.keys(feclocData).sort();
+                const locacionesFisicas = [...locacionesSet].sort();
+                maxPorFranja = {};
+                
+                labelsFranjas.forEach(franja => {
+                    maxPorFranja[franja] = {};
+                    let maxTotal = -1;
+                    let mejorFecha = "";
+                    Object.keys(feclocData[franja]).forEach(fecha => {
+                        let tot = feclocData[franja][fecha]._total;
+                        if (tot > maxTotal) {
+                            maxTotal = tot;
+                            mejorFecha = fecha;
+                        }
+                    });
+                    if (mejorFecha) {
+                        locacionesFisicas.forEach(loc => { maxPorFranja[franja][loc] = feclocData[franja][mejorFecha][loc] || 0; });
+                        maxPorFranja[franja]._fechaPico = mejorFecha;
+                    }
+                });
+                
+                const datasetsFranjas = locacionesFisicas.map((loc, i) => ({
+                    label: loc.toUpperCase(), 
+                    data: labelsFranjas.map(franja => maxPorFranja[franja][loc] || 0),
+                    backgroundColor: colores[i % colores.length], 
+                    stack: 'Stack 0'
+                }));
+
+                const ctxFranjas = document.getElementById('chartFranjas').getContext('2d');
+                chartFranjasInstance = new Chart(ctxFranjas, {
+                    type: 'bar', data: { labels: labelsFranjas, datasets: datasetsFranjas },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { 
+                            x: { stacked: true, grid: { display: false } }, 
+                            y: { stacked: true, beginAtZero: true, grace: '10%', grid: { color: '#e2e8f0' } } 
+                        },
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }, 
+                            datalabels: { display: false },
+                            tooltip: { 
+                                backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                                titleFont: { size: 13 },
+                                callbacks: { title: function(c) { return `Franja: ${c[0].label}\n(Día Máximo: ${maxPorFranja[c[0].label]?._fechaPico || ''})`; } } 
+                            }
+                        }
+                    }
+                });
+            }
+
+            let sumaPicosFisicosGlobal = 0;
+            let labelsPicos = [];
+            let dataPicosArr = [];
+
+            if(picosFiltrados.length > 0) {
+                let maxServicioRango = {};
+                picosFiltrados.forEach(r => {
+                    let key = r.servicio + "||" + r.locacion;
+                    maxServicioRango[key] = Math.max(maxServicioRango[key] || 0, r.pico_maximo);
+                });
+
+                let sumatoriaPicos = {};
+                Object.keys(maxServicioRango).forEach(k => {
+                    let loc = k.split("||")[1];
+                    if (loc !== 'TELETRABAJO') {
+                        let val = maxServicioRango[k];
+                        sumatoriaPicos[loc] = (sumatoriaPicos[loc] || 0) + val;
+                        sumaPicosFisicosGlobal += val; 
+                    }
+                });
+
+                labelsPicos = Object.keys(sumatoriaPicos).map(l => l.toUpperCase());
+                dataPicosArr = Object.values(sumatoriaPicos);
+
+                const ctxPicos = document.getElementById('chartPicos').getContext('2d');
+                chartPicosInstance = new Chart(ctxPicos, {
+                    type: 'bar', data: { labels: labelsPicos, datasets: [{ label: 'Requeridas', data: dataPicosArr, backgroundColor: colores.slice(0, dataPicosArr.length), borderRadius: 4 }] },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        scales: { 
+                            x: { grid: { display: false } },
+                            y: { beginAtZero: true, grace: '15%', grid: { color: '#e2e8f0' } } 
+                        },
+                        plugins: { 
+                            legend: { display: false }, 
+                            datalabels: { 
+                                display: true, color: '#1e293b', anchor: 'end', align: 'top', font: { weight: 'bold', size: 12 }, 
+                                formatter: function(v, c) { let capMax = capDict[c.chart.data.labels[c.dataIndex]] || 0; if (capMax > 0) return `${v} (${Math.round((v/capMax)*100)}%)`; return v; } 
+                            },
+                            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)' }
+                        } 
+                    }
+                });
+            }
+
+            const ctxGauge = document.getElementById('chartGaugeOcupacion').getContext('2d');
+            let libresGlobales = totalCapacidadFisicaGlobal - sumaPicosFisicosGlobal;
+            if (libresGlobales < 0) libresGlobales = 0;
+            let gaugePct = totalCapacidadFisicaGlobal > 0 ? Math.round((sumaPicosFisicosGlobal / totalCapacidadFisicaGlobal) * 100) : 0;
+            
+            chartGaugeOcupacionInstance = new Chart(ctxGauge, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ocupado (Picos)', 'Libre'],
+                    datasets: [{ data: [sumaPicosFisicosGlobal, libresGlobales], backgroundColor: ['#3b82f6', '#e2e8f0'], borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    circumference: 180, rotation: -90, 
+                    cutout: '75%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+                        datalabels: { display: false },
+                        tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)', callbacks: { label: function(c) { return ` ${c.label}: ${c.raw} posiciones`; } } }
+                    }
+                },
+                plugins: [{
+                    id: 'gaugeText',
+                    beforeDraw: function(chart) {
+                        let width = chart.width, height = chart.height, ctx = chart.ctx;
+                        ctx.restore();
+                        let bottomY = chart.chartArea.bottom;
+                        
+                        let fontSizePct = (height / 110).toFixed(2);
+                        ctx.font = "800 " + fontSizePct + "em -apple-system, sans-serif";
+                        ctx.textBaseline = "alphabetic";
+                        ctx.fillStyle = "#1e293b"; 
+                        let text = gaugePct + "%", textX = Math.round((width - ctx.measureText(text).width) / 2);
+                        let textY = bottomY - 20; 
+                        ctx.fillText(text, textX, textY);
+                        
+                        let fontSizeSub = (fontSizePct / 2.8).toFixed(2);
+                        ctx.font = "600 " + fontSizeSub + "em -apple-system, sans-serif";
+                        ctx.fillStyle = "#64748b";
+                        let subText = "Requerido vs Total", subTextX = Math.round((width - ctx.measureText(subText).width) / 2);
+                        ctx.fillText(subText, subTextX, bottomY + 5); 
+                        ctx.save();
+                    }
+                }]
+            });
+        }
+
+        function renderizarDetalle(franjasFiltradas, picosFiltrados, locacionElegida) {
+            if (chartFranjasDetalleInstance) chartFranjasDetalleInstance.destroy();
+            if (chartPicosDetalleInstance) chartPicosDetalleInstance.destroy();
+
+            let dataFranjasDetalle = {}; 
+            let picoMaximoLocal = 0;
+            franjasFiltradas.forEach(r => {
+                let valEnLoc = r[locacionElegida] || 0;
+                if (!dataFranjasDetalle[r.franja]) dataFranjasDetalle[r.franja] = 0;
+                if (valEnLoc > dataFranjasDetalle[r.franja]) {
+                    dataFranjasDetalle[r.franja] = valEnLoc;
+                }
+                if (valEnLoc > picoMaximoLocal) picoMaximoLocal = valEnLoc;
+            });
+            const labelsFD = Object.keys(dataFranjasDetalle).sort();
+            const dataFD = labelsFD.map(f => dataFranjasDetalle[f]);
+
+            let capacidadLocal = capDict[locacionElegida] || 0;
+            document.getElementById('lblCapacidad').innerText = capacidadLocal;
+            document.getElementById('lblOcupacionVal').innerText = picoMaximoLocal;
+            document.getElementById('lblPctOcupacion').innerText = capacidadLocal > 0 ? Math.round((picoMaximoLocal / capacidadLocal) * 100) + "%" : "N/A";
+
+            const ctxFD = document.getElementById('chartFranjasDetalle').getContext('2d');
+            chartFranjasDetalleInstance = new Chart(ctxFD, {
+                type: 'bar', data: { labels: labelsFD, datasets: [{ label: 'Posiciones Ocupadas', data: dataFD, backgroundColor: '#3b82f6', borderRadius: 3 }] },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    scales: { 
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, grace: '10%', grid: { color: '#e2e8f0' } } 
+                    }, 
+                    plugins: { datalabels: { display: false }, tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)' } } 
+                }
+            });
+
+            let maxPorServicio = {};
+            picosFiltrados.filter(p => p.locacion === locacionElegida).forEach(p => {
+                let nombreLimpio = getCampanaSubcampana(p.servicio);
+                maxPorServicio[nombreLimpio] = Math.max(maxPorServicio[nombreLimpio] || 0, p.pico_maximo);
+            });
+            
+            const labelsPD = Object.keys(maxPorServicio).sort();
+            const dataPD = labelsPD.map(s => maxPorServicio[s]);
+
+            const ctxPD = document.getElementById('chartPicosDetalle').getContext('2d');
+            chartPicosDetalleInstance = new Chart(ctxPD, {
+                type: 'doughnut', data: { labels: labelsPD, datasets: [{ data: dataPD, backgroundColor: colores, borderWidth: 2, borderColor: '#fff' }] },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { 
+                        datalabels: { display: false }, 
+                        legend: { position: 'right', labels: { font: { size: 11 }, usePointStyle: true, boxWidth: 8 } },
+                        tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)' }
+                    } 
+                }
+            });
+        }
+
+        function renderizarNomina(franjasFiltradas, picosFiltrados) {
+            if (chartNominaInstance) chartNominaInstance.destroy();
+            if (typeof RAW_NOMINA !== 'undefined') {
+                let filterCampana = document.getElementById('selectCampanaNomina').value;
+                let dataNomina = [...RAW_NOMINA];
+                if (filterCampana !== 'TODOS') dataNomina = dataNomina.filter(n => getCampana(n.servicio) === filterCampana);
+                dataNomina.sort((a, b) => a.servicio.localeCompare(b.servicio));
+                const labelsNomina = dataNomina.map(n => getNombreServicioLimpio(n.servicio));
+                
+                const ctxNomina = document.getElementById('chartNomina').getContext('2d');
+                chartNominaInstance = new Chart(ctxNomina, {
+                    type: 'bar',
+                    data: {
+                        labels: labelsNomina,
+                        datasets: [
+                            { label: 'Presencial', data: dataNomina.map(n => n.presencial), backgroundColor: '#3b82f6', borderRadius: 2 },
+                            { label: 'Teletrabajo', data: dataNomina.map(n => n.teletrabajo), backgroundColor: '#ef4444', borderRadius: 2 }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                        scales: { 
+                            x: { stacked: true, grid: { color: '#e2e8f0' } }, 
+                            y: { stacked: true, grid: { display: false } } 
+                        },
+                        plugins: { 
+                            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }, 
+                            datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: function(v, c) { if (v === 0) return ''; let t = c.chart.data.datasets[0].data[c.dataIndex] + c.chart.data.datasets[1].data[c.dataIndex]; return `${Math.round((v/t)*100)}% (${v})`; } },
+                            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)' }
+                        }
+                    }
+                });
+            }
+
+            if (chartTeletrabajoDiaInstance) chartTeletrabajoDiaInstance.destroy();
+            if (franjasFiltradas.length > 0) {
+                let maxDiarioTeletrabajo = {};
+                let campTeleFilter = document.getElementById('selectCampanaTele').value;
+                franjasFiltradas.forEach(r => { maxDiarioTeletrabajo[r.fecha] = 0; });
+
+                if (campTeleFilter === 'TODOS') {
+                    franjasFiltradas.forEach(r => { let val = r['TELETRABAJO'] || 0; if (val > maxDiarioTeletrabajo[r.fecha]) maxDiarioTeletrabajo[r.fecha] = val; });
+                } else {
+                    picosFiltrados.forEach(p => { if (p.locacion === 'TELETRABAJO' && getCampana(p.servicio) === campTeleFilter) maxDiarioTeletrabajo[p.fecha] = (maxDiarioTeletrabajo[p.fecha] || 0) + p.pico_maximo; });
+                }
+
+                const labelsFechas = Object.keys(maxDiarioTeletrabajo).sort();
+                const ctxTeleDia = document.getElementById('chartTeletrabajoDia').getContext('2d');
+                chartTeletrabajoDiaInstance = new Chart(ctxTeleDia, {
+                    type: 'bar',
+                    data: { labels: labelsFechas, datasets: [{ label: 'Logueos Concurrentes', data: labelsFechas.map(f => maxDiarioTeletrabajo[f]), backgroundColor: '#ef4444', borderRadius: 4 }] },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        scales: { 
+                            x: { grid: { display: false } },
+                            y: { beginAtZero: true, grace: '15%', grid: { color: '#e2e8f0' } } 
+                        }, 
+                        plugins: { 
+                            legend: { display: false }, 
+                            datalabels: { display: true, color: '#1e293b', anchor: 'end', align: 'top', font: { weight: 'bold', size: 12 } },
+                            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)' }
+                        } 
+                    }
+                });
+            }
+        }
+
+        function renderizarMapeo(franjasFiltradas) {
+            const container = document.getElementById('contenedorPlano');
+            container.innerHTML = ''; 
+            document.getElementById('lblAvisoPlano').innerText = "";
+
+            const edif = document.getElementById('selectMapEdificio').value;
+            const piso = document.getElementById('selectMapPiso').value;
+            if (!edif) return;
+
+            let locacionTarget = edif;
+            if (piso !== 'ÚNICO') locacionTarget = edif + ' - ' + piso;
+
+            let ocupacionMaxima = 0;
+            franjasFiltradas.forEach(r => {
+                let val = r[locacionTarget] || 0;
+                if (val > ocupacionMaxima) ocupacionMaxima = val;
+            });
+
+            let planoExcel = null;
+            if (typeof RAW_PLANOS !== 'undefined') planoExcel = RAW_PLANOS[locacionTarget.toUpperCase()]; 
+
+            if (planoExcel) {
+                container.className = 'mapa-container mapa-grid-arquitectura';
+                let maxCols = 0;
+                planoExcel.forEach(row => { if(row.length > maxCols) maxCols = row.length; });
+                
+                container.style.gridTemplateColumns = `repeat(${maxCols}, minmax(0, 1fr))`;
+
+                let asientosTotalesEnPlano = 0;
+                let celdasAsiento = [];
+
+                planoExcel.forEach(row => {
+                    for (let c = 0; c < maxCols; c++) {
+                        let val = (row[c] || "").trim();
+                        let div = document.createElement('div');
+                        
+                        if (val === "") {
+                            div.className = 'layout-cell layout-empty';
+                        } 
+                        else {
+                            let esAsiento = /\d/.test(val) && !/pasillo|total|sala|columna|hidrante|entrada|recepcion|tarima|locker|break|supervision|\bof\b|oficina/i.test(val);
+                            
+                            if (esAsiento) {
+                                div.className = 'layout-cell layout-seat free'; 
+                                div.innerText = val;
+                                div.title = "Posición: " + val;
+                                celdasAsiento.push(div);
+                                asientosTotalesEnPlano++;
+                            } else {
+                                div.className = 'layout-cell layout-empty'; 
+                                let spanEtiqueta = document.createElement('span'); 
+                                spanEtiqueta.className = 'layout-label';
+                                spanEtiqueta.innerText = val;
+                                spanEtiqueta.title = val;
+                                div.appendChild(spanEtiqueta);
+                            }
+                        }
+                        container.appendChild(div);
+                    }
+                });
+
+                let ocupadasReales = Math.min(ocupacionMaxima, asientosTotalesEnPlano);
+                for (let i = 0; i < ocupadasReales; i++) {
+                    celdasAsiento[i].classList.remove('free');
+                    celdasAsiento[i].classList.add('occupied');
+                    celdasAsiento[i].title += " (Ocupada)";
+                }
+
+                document.getElementById('txtTotal').innerText = asientosTotalesEnPlano;
+                document.getElementById('txtOcupadas').innerText = ocupadasReales;
+                document.getElementById('txtLibres').innerText = asientosTotalesEnPlano - ocupadasReales;
+
+                if (ocupacionMaxima > asientosTotalesEnPlano) {
+                    document.getElementById('lblAvisoPlano').innerText = `(Aviso: Hubo picos de ${ocupacionMaxima} personas pero el plano físico solo tiene ${asientosTotalesEnPlano} lugares)`;
+                }
+
+            } else {
+                container.className = 'mapa-container mapa-grid-generico';
+                document.getElementById('lblAvisoPlano').innerText = "(Plano de Excel no encontrado. Mostrando densidad genérica).";
+                container.style.gridTemplateColumns = ""; 
+                
+                const capacidadTotal = capDict[locacionTarget] || 0;
+                let ocupadas = Math.min(ocupacionMaxima, capacidadTotal);
+                let libres = capacidadTotal - ocupadas;
+
+                document.getElementById('txtTotal').innerText = capacidadTotal;
+                document.getElementById('txtOcupadas').innerText = ocupadas;
+                document.getElementById('txtLibres').innerText = libres;
+
+                for (let i = 0; i < capacidadTotal; i++) {
+                    let div = document.createElement('div');
+                    div.classList.add('seat-generic');
+                    if (i < ocupadas) { div.classList.add('occupied'); div.title = "Posición Ocupada"; } 
+                    else { div.classList.add('free'); div.title = "Posición Libre"; }
+                    container.appendChild(div);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
